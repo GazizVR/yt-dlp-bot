@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"log"
+	"os"
 	"os/exec"
 )
 
@@ -25,14 +26,14 @@ func (c *Client) runBin(args ...string) (*string, error) {
 		)
 		return nil, err
 	}
-	return nil, nil
+	filePath := string(out)
+	return &filePath, nil
 }
 
 func (c *Client) DownloadVideo(
 	outputPath string,
 	videoURL string,
-) (*string, error) {
-	var videoPath string
+) (*os.File, error) {
 	path, err := c.runBin(
 		"-o", outputPath,
 		"--recode-video", "mp4",
@@ -44,6 +45,10 @@ func (c *Client) DownloadVideo(
 	if err != nil {
 		return nil, err
 	}
-	videoPath = *path
-	return &videoPath, nil
+	file, err := os.Open(*path)
+	if err != nil {
+		log.Println("Ошибка открытия файла: ", err)
+		return nil, err
+	}
+	return file, nil
 }

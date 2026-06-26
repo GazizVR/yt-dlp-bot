@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"fmt"
+	"os"
 )
 
 type Client struct {
@@ -85,4 +86,11 @@ func (c *Client) SendMessage(
 		return nil, err
 	}
 	return &response, nil
+}
+
+func (c *Client) SendVideo(
+	chatId int64,
+	video os.File,
+) error {
+	return nil
 }
