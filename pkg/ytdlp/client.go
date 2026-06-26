@@ -9,11 +9,11 @@ type Client struct {
 	BinPath string
 }
 
-func (c *Client) runBin(args ...string) error {
+func (c *Client) runBin(args ...string) (*string, error) {
 	path, err := exec.LookPath(c.BinPath)
 	if err != nil {
 		log.Println("Бинарник yt-dlp не найден: ", err)
-		return err
+		return nil, err
 	}
 	cmd := exec.Command(path, args...)
 	out, err := cmd.Output()
@@ -23,12 +23,27 @@ func (c *Client) runBin(args ...string) error {
 			err.Error(),
 			string(out),
 		)
-		return err
+		return nil, err
 	}
-	return nil
+	return nil, nil
 }
 
-func (c *Client) DownloadVideo() (*string, error) {
+func (c *Client) DownloadVideo(
+	outputPath string,
+	videoURL string,
+) (*string, error) {
 	var videoPath string
+	path, err := c.runBin(
+		"-o", outputPath,
+		"--recode-video", "mp4",
+		"--quiet",
+		"--no-warnings",
+		"--print", "after_move:filepath",
+		videoURL,
+	)
+	if err != nil {
+		return nil, err
+	}
+	videoPath = *path
 	return &videoPath, nil
 }
