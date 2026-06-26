@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type Client struct {
@@ -51,9 +52,10 @@ func (c *Client) DownloadVideo(
 	if err != nil {
 		return nil, err
 	}
-	file, err := os.Open(*path)
+	newPath := strings.ReplaceAll(*path, "\n", "")
+	file, err := os.Open(newPath)
 	if err != nil {
-		log.Println("Ошибка открытия файла: ", err)
+		log.Printf("Ошибка открытия %q: %v", newPath, err)
 		return nil, err
 	}
 	return file, nil
