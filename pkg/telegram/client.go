@@ -1,0 +1,78 @@
+package telegram
+
+import (
+	"fmt"
+)
+
+type Client struct {
+	Token   string
+	BaseURL string
+}
+
+const (
+	GetUpdatesMethod  = "getUpdates"
+	SendMessageMethod = "sendMessage"
+)
+
+func (c *Client) urlPath(method string) string {
+	return fmt.Sprint("bot", c.Token, method)
+}
+
+func (c *Client) GetUpdates(
+	offset int64,
+	limit uint8,
+	timeout uint8,
+	allowedUpdates []string,
+) (*GetUpdatesResp, error) {
+	var response GetUpdatesResp
+
+	params := map[string]string{
+		"offset":          fmt.Sprintf("%d", offset),
+		"limit":           fmt.Sprintf("%d", limit),
+		"timeout":         fmt.Sprintf("%d", timeout),
+		"allowed_updates": fmt.Sprintf("%v", allowedUpdates),
+	}
+
+	body, err := getRequest(
+		c.BaseURL,
+		c.urlPath(GetUpdatesMethod),
+		params,
+		&response,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := CommonResp{Ok: response.Ok}
+	if err := checkError(resp, body); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (c *Client) SendMessage(
+	ChatId int64,
+	Text string,
+) (*SendMessageResp, error) {
+	var response SendMessageResp
+	params := map[string]string{
+		"chat_id": fmt.Sprintf("%d", ChatId),
+		"text":    Text,
+	}
+
+	body, err := getRequest(
+		c.BaseURL,
+		c.urlPath(SendMessageMethod),
+		params,
+		&response,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := CommonResp{Ok: response.Ok}
+	if err := checkError(resp, body); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
