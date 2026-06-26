@@ -15,16 +15,11 @@ func NewService(client *telegram.Client) *Service {
 	}
 }
 
-const StartText = "Hello, world!"
-
 func (s *Service) handleUpdate(
 	update telegram.Update,
 ) error {
 	if update.Message.Text == "/start" {
-		if _, err := s.Cl.SendMessage(
-			update.Message.Chat.Id,
-			StartText,
-		); err != nil {
+		if err := s.handleStartCommand(update.Message.Chat.Id); err != nil {
 			return err
 		}
 	}
