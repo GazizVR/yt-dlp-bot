@@ -34,8 +34,8 @@ func (c *Client) GetUpdates(
 	limit uint8,
 	timeout uint8,
 	allowedUpdates []string,
-) (*GetUpdatesResp, error) {
-	var response GetUpdatesResp
+) (*UpdatesResponse, error) {
+	var response UpdatesResponse
 
 	params := map[string]string{
 		"offset":          fmt.Sprintf("%d", offset),
@@ -54,7 +54,7 @@ func (c *Client) GetUpdates(
 		return nil, err
 	}
 
-	resp := CommonResp{Ok: response.Ok}
+	resp := CommonResponse{Ok: response.Ok}
 	if err := checkError(resp, body); err != nil {
 		return nil, err
 	}
@@ -62,13 +62,13 @@ func (c *Client) GetUpdates(
 }
 
 func (c *Client) SendMessage(
-	ChatId int64,
-	Text string,
-) (*SendMessageResp, error) {
-	var response SendMessageResp
+	chatId int64,
+	text string,
+) (*MessageResponse, error) {
+	var response MessageResponse
 	params := map[string]string{
-		"chat_id": fmt.Sprintf("%d", ChatId),
-		"text":    Text,
+		"chat_id": fmt.Sprintf("%d", chatId),
+		"text":    text,
 	}
 
 	body, err := getRequest(
@@ -81,7 +81,7 @@ func (c *Client) SendMessage(
 		return nil, err
 	}
 
-	resp := CommonResp{Ok: response.Ok}
+	resp := CommonResponse{Ok: response.Ok}
 	if err := checkError(resp, body); err != nil {
 		return nil, err
 	}
@@ -91,6 +91,25 @@ func (c *Client) SendMessage(
 func (c *Client) SendVideo(
 	chatId int64,
 	video os.File,
-) error {
-	return nil
+) (*MessageResponse, error) {
+	var response MessageResponse
+	params := map[string]string{
+		"chat_id": fmt.Sprintf("%d", chatId),
+	}
+
+	body, err := postRequest(
+		c.BaseURL,
+		c.urlPath(SendMessageMethod),
+		params,
+		&response,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := CommonResponse{Ok: response.Ok}
+	if err := checkError(resp, body); err != nil {
+		return nil, err
+	}
+	return &response, nil
 }

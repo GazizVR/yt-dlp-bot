@@ -50,8 +50,17 @@ func getRequest[T any](
 	return respBody, nil
 }
 
+func postRequest[T any](
+	baseURL string,
+	urlPath string,
+	params map[string]string,
+	v T,
+) ([]byte, error) {
+	return nil, nil
+}
+
 func checkError(
-	resp CommonResp,
+	resp CommonResponse,
 	body []byte,
 ) error {
 	if !resp.Ok {

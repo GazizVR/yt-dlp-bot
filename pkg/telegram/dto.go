@@ -1,21 +1,21 @@
 package telegram
 
-type CommonResp struct {
+type CommonResponse struct {
 	Ok bool `json:"ok"`
 }
 
-type GetUpdatesResp struct {
-	CommonResp
+type UpdatesResponse struct {
+	CommonResponse
 	Result []Update `json:"result"`
 }
 
-type SendMessageResp struct {
-	CommonResp
+type MessageResponse struct {
+	CommonResponse
 	Result Message `json:"result"`
 }
 
 type ErrorResponse struct {
-	CommonResp
+	CommonResponse
 	Code        uint16 `json:"error_code"`
 	Description string `json:"description"`
 }
