@@ -24,10 +24,11 @@ func (s *Service) handleMsgWURL(
 	chatId int64,
 	url string,
 ) error {
-	if _, err := s.Tg.SendMessage(
+	msg, err := s.Tg.SendMessage(
 		chatId,
 		SendText,
-	); err != nil {
+	)
+	if err != nil {
 		return err
 	}
 	videoFile, err := s.Dlp.DownloadVideo(
@@ -37,6 +38,7 @@ func (s *Service) handleMsgWURL(
 	if err != nil {
 		return err
 	}
+	s.Tg.DeleteMessage(chatId, msg.Result.Id)
 	_, err = s.Tg.SendVideo(chatId, *videoFile)
 	if err != nil {
 		return err
