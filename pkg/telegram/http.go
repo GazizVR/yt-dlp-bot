@@ -99,6 +99,7 @@ func sendVideoRequest[T any](
 		urlStr,
 		body,
 	)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
 	client := http.DefaultClient
 
 	resp, err := client.Do(request)

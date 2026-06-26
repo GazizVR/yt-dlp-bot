@@ -23,6 +23,7 @@ func NewClient(
 const (
 	GetUpdatesMethod  = "getUpdates"
 	SendMessageMethod = "sendMessage"
+	SendVideoMethod   = "sendVideo"
 )
 
 func (c *Client) urlPath(method string) string {
@@ -99,7 +100,7 @@ func (c *Client) SendVideo(
 
 	body, err := sendVideoRequest(
 		c.BaseURL,
-		c.urlPath(SendMessageMethod),
+		c.urlPath(SendVideoMethod),
 		params,
 		video,
 		&response,
