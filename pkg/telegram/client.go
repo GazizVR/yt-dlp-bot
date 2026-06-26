@@ -9,6 +9,16 @@ type Client struct {
 	BaseURL string
 }
 
+func NewClient(
+	token string,
+	baseURL string,
+) *Client {
+	return &Client{
+		Token:   token,
+		BaseURL: baseURL,
+	}
+}
+
 const (
 	GetUpdatesMethod  = "getUpdates"
 	SendMessageMethod = "sendMessage"
