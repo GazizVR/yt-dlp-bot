@@ -21,7 +21,10 @@ func (s *Service) handleUpdate(
 	update telegram.Update,
 ) error {
 	if update.Message.Text == "/start" {
-		if _, err := s.Cl.SendMessage(update.Message.Chat.Id, StartText); err != nil {
+		if _, err := s.Cl.SendMessage(
+			update.Message.Chat.Id,
+			StartText,
+		); err != nil {
 			return err
 		}
 	}
@@ -47,6 +50,7 @@ func (s *Service) handleUpdates(
 			return nil, err
 		}
 	}
+	lastUpdateId++
 	return &lastUpdateId, nil
 }
 
