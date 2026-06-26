@@ -30,11 +30,22 @@ func (s *Service) handleUpdate(
 		}
 	}
 	if update.Message.LinkPreview != nil {
-		if err := s.handleMsgWURL(
+		if msgId, err := s.handleMsgWURL(
 			update.Message.Chat.Id,
 			update.Message.LinkPreview.URL,
 		); err != nil {
-			s.Tg.SendMessage(update.Message.Chat.Id, ErrorText)
+			if msgId != nil {
+				s.Tg.EditMessageText(
+					update.Message.Chat.Id,
+					*msgId,
+					ErrorText,
+				)
+			} else {
+				s.Tg.SendMessage(
+					update.Message.Chat.Id,
+					ErrorText,
+				)
+			}
 			return err
 		}
 	}
