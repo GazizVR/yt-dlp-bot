@@ -6,10 +6,10 @@ type Update struct {
 }
 
 type Message struct {
-	Id          int64          `json:"message_id"`
-	Text        string         `json:"text"`
-	LinkPreview LinkPreviewOps `json:"link_preview_options"`
-	Chat        Chat           `json:"chat"`
+	Id          int64           `json:"message_id"`
+	Text        string          `json:"text"`
+	LinkPreview *LinkPreviewOps `json:"link_preview_options"`
+	Chat        Chat            `json:"chat"`
 }
 
 type LinkPreviewOps struct {
