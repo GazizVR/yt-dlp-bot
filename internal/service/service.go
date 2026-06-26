@@ -34,6 +34,7 @@ func (s *Service) handleUpdate(
 			update.Message.Chat.Id,
 			update.Message.LinkPreview.URL,
 		); err != nil {
+			s.Tg.SendMessage(update.Message.Chat.Id, ErrorText)
 			return err
 		}
 	}

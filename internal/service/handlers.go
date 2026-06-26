@@ -2,7 +2,11 @@ package service
 
 import "fmt"
 
-const StartText = "Hello, world!"
+const (
+	StartText = "🔗 Отправьте ссылку на видео"
+	SendText  = "⏳ Подождите, загружаем..."
+	ErrorText = "❌ Ошибка установки, попробуйте снова"
+)
 
 func (s *Service) handleStartCommand(
 	chatId int64,
@@ -20,6 +24,12 @@ func (s *Service) handleMsgWURL(
 	chatId int64,
 	url string,
 ) error {
+	if _, err := s.Tg.SendMessage(
+		chatId,
+		SendText,
+	); err != nil {
+		return err
+	}
 	videoFile, err := s.Dlp.DownloadVideo(
 		fmt.Sprint("tmp/fine-", chatId),
 		url,
