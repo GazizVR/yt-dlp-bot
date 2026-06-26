@@ -4,13 +4,15 @@ import (
 	"bot/internal/config"
 	"bot/internal/service"
 	"bot/pkg/telegram"
+	"bot/pkg/ytdlp"
 	"log"
 )
 
 func main() {
 	cfg := config.Load()
-	client := telegram.NewClient(cfg.TelegramToken, cfg.TelegramApiBaseURL)
-	service := service.NewService(client)
+	telegram := telegram.NewClient(cfg.TelegramToken, cfg.TelegramApiBaseURL)
+	ytdlp := ytdlp.NewClient(cfg.YtDlpBinPath)
+	service := service.NewService(telegram, ytdlp)
 	log.Println("Сервер запускается")
 	if err := service.Run(); err != nil {
 		log.Fatalln("Ошибка запуска обработчика ошибок")

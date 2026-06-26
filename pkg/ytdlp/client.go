@@ -10,6 +10,12 @@ type Client struct {
 	BinPath string
 }
 
+func NewClient(binPath string) *Client {
+	return &Client{
+		BinPath: binPath,
+	}
+}
+
 func (c *Client) runBin(args ...string) (*string, error) {
 	path, err := exec.LookPath(c.BinPath)
 	if err != nil {

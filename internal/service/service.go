@@ -2,16 +2,22 @@ package service
 
 import (
 	"bot/pkg/telegram"
+	"bot/pkg/ytdlp"
 	"time"
 )
 
 type Service struct {
-	Cl *telegram.Client
+	Tg  *telegram.Client
+	Dlp *ytdlp.Client
 }
 
-func NewService(client *telegram.Client) *Service {
+func NewService(
+	tg *telegram.Client,
+	dlp *ytdlp.Client,
+) *Service {
 	return &Service{
-		Cl: client,
+		Tg:  tg,
+		Dlp: dlp,
 	}
 }
 
@@ -30,7 +36,7 @@ func (s *Service) handleUpdates(
 	offset int64,
 ) (*int64, error) {
 	lastUpdateId := offset
-	response, err := s.Cl.GetUpdates(
+	response, err := s.Tg.GetUpdates(
 		offset,
 		100,
 		60,
