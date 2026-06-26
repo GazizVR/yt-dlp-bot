@@ -1,13 +1,16 @@
 package telegram
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 func getRequest[T any](
@@ -37,6 +40,7 @@ func getRequest[T any](
 		log.Println("Ошибка выполнения get http запроса: ", err)
 		return nil, err
 	}
+	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Ошибка чтения http body: ", err)
@@ -50,13 +54,69 @@ func getRequest[T any](
 	return respBody, nil
 }
 
-func postRequest[T any](
+func sendVideoRequest[T any](
 	baseURL string,
 	urlPath string,
 	params map[string]string,
+	file os.File,
 	v T,
 ) ([]byte, error) {
-	return nil, nil
+	defer file.Close()
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	for k, v := range params {
+		if err := writer.WriteField(k, v); err != nil {
+			return nil, err
+		}
+	}
+	part, err := writer.CreateFormFile("video", file.Name())
+	if err != nil {
+		log.Println("Ошибка создания multipart file: ", err)
+		return nil, err
+	}
+	_, err = io.Copy(part, &file)
+	if err != nil {
+		log.Println("Ошибка записи данных в part: ", err)
+		return nil, err
+	}
+	if err := writer.Close(); err != nil {
+		log.Println("Ошибка закрытия multipart writer: ", err)
+		return nil, err
+	}
+
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		log.Println("Ошибка парсинга baseURL: ", err)
+		return nil, err
+	}
+
+	u.Path = urlPath
+
+	urlStr := u.String()
+
+	request, err := http.NewRequest(
+		http.MethodPost,
+		urlStr,
+		body,
+	)
+	client := http.DefaultClient
+
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println("Ошибка выполнения post http запроса: ", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Ошибка чтения http body: ", err)
+		return nil, err
+	}
+	if err := json.Unmarshal(respBody, v); err != nil {
+		log.Println("Ошибка преобразования http body to json: ", err)
+		return nil, err
+	}
+	return respBody, nil
 }
 
 func checkError(

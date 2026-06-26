@@ -97,10 +97,11 @@ func (c *Client) SendVideo(
 		"chat_id": fmt.Sprintf("%d", chatId),
 	}
 
-	body, err := postRequest(
+	body, err := sendVideoRequest(
 		c.BaseURL,
 		c.urlPath(SendMessageMethod),
 		params,
+		video,
 		&response,
 	)
 	if err != nil {
