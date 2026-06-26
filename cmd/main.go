@@ -12,7 +12,7 @@ func main() {
 	client := telegram.NewClient(cfg.TelegramToken, cfg.TelegramApiBaseURL)
 	service := service.NewService(client)
 	log.Println("Сервер запускается")
-	if err := service.StartUpdateHandle(); err != nil {
+	if err := service.Run(); err != nil {
 		log.Fatalln("Ошибка запуска обработчика ошибок")
 	}
 }

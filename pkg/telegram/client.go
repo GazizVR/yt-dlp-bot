@@ -25,7 +25,7 @@ const (
 )
 
 func (c *Client) urlPath(method string) string {
-	return fmt.Sprint("bot", c.Token, method)
+	return fmt.Sprint("bot", c.Token, "/", method)
 }
 
 func (c *Client) GetUpdates(
