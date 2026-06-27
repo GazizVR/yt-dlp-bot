@@ -21,10 +21,11 @@ func NewClient(
 }
 
 const (
-	GetUpdatesMethod  = "getUpdates"
-	SendMessageMethod = "sendMessage"
-	SendVideoMethod   = "sendVideo"
-	DeleteMessage     = "deleteMessage"
+	GetUpdatesMethod    = "getUpdates"
+	SendMessageMethod   = "sendMessage"
+	SendVideoMethod     = "sendVideo"
+	DeleteMessageMethod = "deleteMessage"
+	EditMessageMethod   = "editMessageText"
 )
 
 func (c *Client) urlPath(method string) string {
@@ -104,7 +105,7 @@ func (c *Client) EditMessageText(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(SendMessageMethod),
+		c.urlPath(EditMessageMethod),
 		params,
 		&response,
 	)
@@ -158,7 +159,7 @@ func (c *Client) DeleteMessage(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(SendMessageMethod),
+		c.urlPath(DeleteMessageMethod),
 		params,
 		&response,
 	)
