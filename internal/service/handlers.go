@@ -1,7 +1,5 @@
 package service
 
-import "fmt"
-
 const (
 	StartText = "🔗 Отправьте ссылку на видео"
 	SendText  = "⏳ Подождите, загружаем..."
@@ -32,7 +30,7 @@ func (s *Service) handleMsgWURL(
 		return &msg.Result.Id, err
 	}
 	videoFile, err := s.Dlp.DownloadVideo(
-		fmt.Sprint("tmp/fine-", chatId),
+		"tmp",
 		url,
 	)
 	if err != nil {

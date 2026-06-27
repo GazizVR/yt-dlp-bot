@@ -42,7 +42,7 @@ func (c *Client) DownloadVideo(
 	videoURL string,
 ) (*os.File, error) {
 	path, err := c.runBin(
-		"-o", outputPath,
+		"-P", outputPath,
 		"--recode-video", "mp4",
 		"--quiet",
 		"--no-warnings",

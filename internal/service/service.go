@@ -67,9 +67,7 @@ func (s *Service) handleUpdates(
 	}
 	for _, u := range response.Result {
 		lastUpdateId = u.Id
-		if err := s.handleUpdate(u); err != nil {
-			return nil, err
-		}
+		go s.handleUpdate(u)
 	}
 	lastUpdateId++
 	return &lastUpdateId, nil
