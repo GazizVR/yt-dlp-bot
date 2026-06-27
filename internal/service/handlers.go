@@ -21,25 +21,39 @@ func (s *Service) handleStartCommand(
 func (s *Service) handleMsgWURL(
 	chatId int64,
 	url string,
-) (*int64, error) {
+) error {
 	msg, err := s.Tg.SendMessage(
 		chatId,
 		SendText,
 	)
 	if err != nil {
-		return &msg.Result.Id, err
+		s.Tg.SendMessage(
+			chatId,
+			ErrorText,
+		)
+		return err
 	}
 	videoFile, err := s.Dlp.DownloadVideo(
 		"tmp",
 		url,
 	)
 	if err != nil {
-		return &msg.Result.Id, err
+		s.Tg.DeleteMessage(chatId, msg.Result.Id)
+		s.Tg.SendMessage(
+			chatId,
+			ErrorText,
+		)
+		return err
 	}
 	s.Tg.DeleteMessage(chatId, msg.Result.Id)
 	_, err = s.Tg.SendVideo(chatId, *videoFile)
 	if err != nil {
-		return &msg.Result.Id, err
+		s.Tg.DeleteMessage(chatId, msg.Result.Id)
+		s.Tg.SendMessage(
+			chatId,
+			ErrorText,
+		)
+		return err
 	}
-	return nil, nil
+	return nil
 }

@@ -25,7 +25,6 @@ const (
 	SendMessageMethod   = "sendMessage"
 	SendVideoMethod     = "sendVideo"
 	DeleteMessageMethod = "deleteMessage"
-	EditMessageMethod   = "editMessageText"
 )
 
 func (c *Client) urlPath(method string) string {
@@ -89,35 +88,6 @@ func (c *Client) SendMessage(
 		return nil, err
 	}
 	return &response, nil
-}
-
-func (c *Client) EditMessageText(
-	chatId int64,
-	messageId int64,
-	text string,
-) error {
-	var response CommonResponse
-	params := map[string]string{
-		"chat_id":    fmt.Sprintf("%d", chatId),
-		"message_id": fmt.Sprintf("%d", messageId),
-		"text":       text,
-	}
-
-	body, err := getRequest(
-		c.BaseURL,
-		c.urlPath(EditMessageMethod),
-		params,
-		&response,
-	)
-	if err != nil {
-		return err
-	}
-
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(resp, body); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (c *Client) SendVideo(

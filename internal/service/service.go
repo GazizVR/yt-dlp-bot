@@ -30,22 +30,10 @@ func (s *Service) handleUpdate(
 		}
 	}
 	if update.Message.LinkPreview != nil {
-		if msgId, err := s.handleMsgWURL(
+		if err := s.handleMsgWURL(
 			update.Message.Chat.Id,
 			update.Message.LinkPreview.URL,
 		); err != nil {
-			if msgId != nil {
-				s.Tg.EditMessageText(
-					update.Message.Chat.Id,
-					*msgId,
-					ErrorText,
-				)
-			} else {
-				s.Tg.SendMessage(
-					update.Message.Chat.Id,
-					ErrorText,
-				)
-			}
 			return err
 		}
 	}
@@ -53,35 +41,32 @@ func (s *Service) handleUpdate(
 }
 
 func (s *Service) handleUpdates(
-	offset int64,
-) (*int64, error) {
-	lastUpdateId := offset
+	lastUpdateId *int64,
+) error {
 	response, err := s.Tg.GetUpdates(
-		offset,
+		*lastUpdateId,
 		100,
 		60,
 		[]string{"message"},
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, u := range response.Result {
-		lastUpdateId = u.Id
+		*lastUpdateId = u.Id
 		go s.handleUpdate(u)
 	}
-	lastUpdateId++
-	return &lastUpdateId, nil
+	*lastUpdateId += 1
+	return nil
 }
 
 func (s *Service) Run() error {
 	var lastUpdateId int64
 	for {
-		updateId, err := s.handleUpdates(lastUpdateId)
-		if err != nil {
+		if err := s.handleUpdates(&lastUpdateId); err != nil {
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		lastUpdateId = *updateId
 		time.Sleep(1 * time.Second)
 	}
 }
