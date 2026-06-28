@@ -46,7 +46,7 @@ func (s *Service) handleMsgWURL(
 		return err
 	}
 	s.Tg.DeleteMessage(chatId, msg.Result.Id)
-	_, err = s.Tg.SendVideo(chatId, *videoFile)
+	_, err = s.Tg.SendVideoWithKeyboard(chatId, *videoFile)
 	if err != nil {
 		s.Tg.DeleteMessage(chatId, msg.Result.Id)
 		s.Tg.SendMessage(
