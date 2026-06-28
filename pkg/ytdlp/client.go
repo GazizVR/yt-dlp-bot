@@ -39,15 +39,39 @@ func (c *Client) runBin(args ...string) (*string, error) {
 
 func (c *Client) DownloadVideo(
 	outputPath string,
-	videoURL string,
+	mediaURL string,
 ) (*os.File, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
-		"--recode-video", "mp4",
 		"--quiet",
 		"--no-warnings",
 		"--print", "after_move:filepath",
-		videoURL,
+		mediaURL,
+	)
+	if err != nil {
+		return nil, err
+	}
+	newPath := strings.ReplaceAll(*path, "\n", "")
+	file, err := os.Open(newPath)
+	if err != nil {
+		log.Printf("Ошибка открытия %q: %v", newPath, err)
+		return nil, err
+	}
+	return file, nil
+}
+
+func (c *Client) DownloadAudio(
+	outputPath string,
+	mediaURL string,
+) (*os.File, error) {
+	path, err := c.runBin(
+		"-P", outputPath,
+		"-x",
+		"--audio-format", "mp3",
+		"--quiet",
+		"--no-warnings",
+		"--print", "after_move:filepath",
+		mediaURL,
 	)
 	if err != nil {
 		return nil, err
