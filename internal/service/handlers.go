@@ -4,7 +4,7 @@ const (
 	StartText = "🔗 Отправьте ссылку на видео"
 	SendText  = "⏳ Подождите, загружаем..."
 	ErrorText = "❌ Ошибка установки, попробуйте снова"
-    ButtonText = ""
+    ButtonText = "​📥 Скачать аудио"
 )
 
 func (s *Service) handleStartCommand(
