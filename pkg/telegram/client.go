@@ -112,7 +112,7 @@ func (c *Client) SendVideoWithButton(
 			`{
 				"inline_keyboard": [
 					[
-						{"text": %s,"callback_data": %s}
+						{"text": "%s", "callback_data": "%s"}
 					]
 				]
 			}`,

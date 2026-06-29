@@ -64,11 +64,11 @@ func sendVideoRequest[T any](
 	defer file.Close()
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	for k, v := range params {
-		if err := writer.WriteField(k, v); err != nil {
-			return nil, err
-		}
-	}
+	// for k, v := range params {
+	// 	if err := writer.WriteField(k, v); err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 	part, err := writer.CreateFormFile("video", file.Name())
 	if err != nil {
 		log.Println("Ошибка создания multipart file: ", err)
@@ -91,6 +91,12 @@ func sendVideoRequest[T any](
 	}
 
 	u.Path = urlPath
+
+	q := u.Query()
+	for k, v := range params {
+		q.Set(k, v)
+	}
+	u.RawQuery = q.Encode()
 
 	urlStr := u.String()
 
