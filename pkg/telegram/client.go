@@ -59,10 +59,10 @@ func (c *Client) GetUpdates(
 
 	resp := CommonResponse{Ok: response.Ok}
 	if err := checkError(
-        resp, 
-        body,
-        GetUpdatesMethod,
-    ); err != nil {
+		resp,
+		body,
+		GetUpdatesMethod,
+	); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -90,10 +90,10 @@ func (c *Client) SendMessage(
 
 	resp := CommonResponse{Ok: response.Ok}
 	if err := checkError(
-        resp, 
-        body,
-        SendMessageMethod,
-    ); err != nil {
+		resp,
+		body,
+		SendMessageMethod,
+	); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -102,21 +102,20 @@ func (c *Client) SendMessage(
 func (c *Client) SendVideoWithButton(
 	chatId int64,
 	video os.File,
-    btnText string,
-    btnCallback string,
+	btnText string,
+	btnCallback string,
 ) (*MessageResponse, error) {
 	var response MessageResponse
 	params := map[string]string{
 		"chat_id": fmt.Sprintf("%d", chatId),
 		"reply_markup": fmt.Sprintf(
-			`
+			`{
 				"inline_keyboard": [
 					[
-						"text": %s,
-						"callback_data": %s,
+						{"text": %s,"callback_data": %s}
 					]
 				]
-			`,
+			}`,
 			btnText,
 			btnCallback,
 		),
@@ -135,10 +134,10 @@ func (c *Client) SendVideoWithButton(
 
 	resp := CommonResponse{Ok: response.Ok}
 	if err := checkError(
-        resp, 
-        body,
-        SendVideoMethod,
-    ); err != nil {
+		resp,
+		body,
+		SendVideoMethod,
+	); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -167,10 +166,10 @@ func (c *Client) DeleteVideoKeyboard(
 
 	resp := CommonResponse{Ok: response.Ok}
 	if err := checkError(
-        resp, 
-        body,
-        EditMessageReplyMarkup,
-    ); err != nil {
+		resp,
+		body,
+		EditMessageReplyMarkup,
+	); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -198,10 +197,10 @@ func (c *Client) DeleteMessage(
 
 	resp := CommonResponse{Ok: response.Ok}
 	if err := checkError(
-        resp, 
-        body,
-        DeleteMessageMethod,
-    ); err != nil {
+		resp,
+		body,
+		DeleteMessageMethod,
+	); err != nil {
 		return err
 	}
 	return nil

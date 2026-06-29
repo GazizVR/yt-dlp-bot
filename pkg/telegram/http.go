@@ -123,7 +123,7 @@ func sendVideoRequest[T any](
 func checkError(
 	resp CommonResponse,
 	body []byte,
-    method string,
+	method string,
 ) error {
 	if !resp.Ok {
 		var errRespp ErrorResponse
@@ -132,11 +132,11 @@ func checkError(
 			return err
 		}
 		errStr := fmt.Sprintf(
-            "Error %s %d: %s\n",
-            method,
-            errRespp.Code, 
-            errRespp.Description,
-        )
+			"Error %s %d: %s\n",
+			method,
+			errRespp.Code,
+			errRespp.Description,
+		)
 		err := errors.New(errStr)
 		log.Print(err.Error())
 		return err
