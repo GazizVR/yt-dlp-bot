@@ -1,7 +1,5 @@
 package service
 
-import "fmt"
-
 const (
 	StartText = "🔗 Отправьте ссылку на видео"
 	SendText  = "⏳ Подождите, загружаем..."
