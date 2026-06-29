@@ -58,7 +58,11 @@ func (c *Client) GetUpdates(
 	}
 
 	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(resp, body); err != nil {
+	if err := checkError(
+        resp, 
+        body,
+        GetUpdatesMethod,
+    ); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -85,15 +89,21 @@ func (c *Client) SendMessage(
 	}
 
 	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(resp, body); err != nil {
+	if err := checkError(
+        resp, 
+        body,
+        SendMessageMethod,
+    ); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *Client) SendVideoWithKeyboard(
+func (c *Client) SendVideoWithButton(
 	chatId int64,
 	video os.File,
+    btnText string,
+    btnCallback string,
 ) (*MessageResponse, error) {
 	var response MessageResponse
 	params := map[string]string{
@@ -107,8 +117,8 @@ func (c *Client) SendVideoWithKeyboard(
 					]
 				]
 			`,
-			"",
-			"",
+			btnText,
+			btnCallback,
 		),
 	}
 
@@ -124,7 +134,11 @@ func (c *Client) SendVideoWithKeyboard(
 	}
 
 	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(resp, body); err != nil {
+	if err := checkError(
+        resp, 
+        body,
+        SendVideoMethod,
+    ); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -152,7 +166,11 @@ func (c *Client) DeleteVideoKeyboard(
 	}
 
 	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(resp, body); err != nil {
+	if err := checkError(
+        resp, 
+        body,
+        EditMessageReplyMarkup,
+    ); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -179,7 +197,11 @@ func (c *Client) DeleteMessage(
 	}
 
 	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(resp, body); err != nil {
+	if err := checkError(
+        resp, 
+        body,
+        DeleteMessageMethod,
+    ); err != nil {
 		return err
 	}
 	return nil

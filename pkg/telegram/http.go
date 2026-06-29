@@ -123,6 +123,7 @@ func sendVideoRequest[T any](
 func checkError(
 	resp CommonResponse,
 	body []byte,
+    method string,
 ) error {
 	if !resp.Ok {
 		var errRespp ErrorResponse
@@ -130,7 +131,12 @@ func checkError(
 			log.Println("Ошибка преобразования raw bytes to json: ", err)
 			return err
 		}
-		errStr := fmt.Sprintf("Error %d %s\n", errRespp.Code, errRespp.Description)
+		errStr := fmt.Sprintf(
+            "Error %s %d: %s\n",
+            method,
+            errRespp.Code, 
+            errRespp.Description,
+        )
 		err := errors.New(errStr)
 		log.Print(err.Error())
 		return err

@@ -1,9 +1,12 @@
 package service
 
+import "fmt"
+
 const (
 	StartText = "🔗 Отправьте ссылку на видео"
 	SendText  = "⏳ Подождите, загружаем..."
 	ErrorText = "❌ Ошибка установки, попробуйте снова"
+    ButtonText = ""
 )
 
 func (s *Service) handleStartCommand(
@@ -46,7 +49,12 @@ func (s *Service) handleMsgWURL(
 		return err
 	}
 	s.Tg.DeleteMessage(chatId, msg.Result.Id)
-	_, err = s.Tg.SendVideoWithKeyboard(chatId, *videoFile)
+	_, err = s.Tg.SendVideoWithButton(
+        chatId,
+        *videoFile,
+        ButtonText,
+        "Download audio",
+    )
 	if err != nil {
 		s.Tg.DeleteMessage(chatId, msg.Result.Id)
 		s.Tg.SendMessage(
