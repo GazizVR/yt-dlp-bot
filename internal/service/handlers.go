@@ -1,5 +1,10 @@
 package service
 
+import (
+    "bot/pkg/telegram"
+    "fmt"
+)
+
 const (
 	StartText = "🔗 Отправьте ссылку на видео"
 	SendText  = "⏳ Подождите, загружаем..."
@@ -62,4 +67,11 @@ func (s *Service) handleMsgWURL(
 		return err
 	}
 	return nil
+}
+
+func (s *Service) handleCallbackQuery(
+    callback telegram.CallbackQuery,
+) error {
+    fmt.Println(callback)
+    return nil
 }
