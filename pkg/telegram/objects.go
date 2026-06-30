@@ -2,7 +2,19 @@ package telegram
 
 type Update struct {
 	Id      int64   `json:"update_id"`
-	Message Message `json:"message"`
+	Message *Message `json:"message"`
+    Callback *CallbackQuery `json:"callback_query"`
+}
+
+type CallbackQuery struct {
+    Id string `json:"id"`
+    Data string `json:"data"`
+    Message InaccessibleMessage `json:"message"`
+}
+
+type InaccessibleMessage struct {
+    Id          int64           `json:"message_id"`
+	Chat        Chat            `json:"chat"`
 }
 
 type Message struct {
