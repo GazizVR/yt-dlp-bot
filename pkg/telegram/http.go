@@ -54,22 +54,19 @@ func getRequest[T any](
 	return respBody, nil
 }
 
-func sendVideoRequest[T any](
+func postRequest[T any](
 	baseURL string,
 	urlPath string,
 	params map[string]string,
 	file os.File,
+	formFieldName string,
 	v T,
 ) ([]byte, error) {
 	defer file.Close()
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	// for k, v := range params {
-	// 	if err := writer.WriteField(k, v); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-	part, err := writer.CreateFormFile("video", file.Name())
+
+	part, err := writer.CreateFormFile(formFieldName, file.Name())
 	if err != nil {
 		log.Println("Ошибка создания multipart file: ", err)
 		return nil, err
@@ -79,6 +76,7 @@ func sendVideoRequest[T any](
 		log.Println("Ошибка записи данных в part: ", err)
 		return nil, err
 	}
+
 	if err := writer.Close(); err != nil {
 		log.Println("Ошибка закрытия multipart writer: ", err)
 		return nil, err

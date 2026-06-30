@@ -1,15 +1,15 @@
 package service
 
 import (
-    "bot/pkg/telegram"
-    "fmt"
+	"bot/pkg/telegram"
+	"fmt"
 )
 
 const (
-	StartText = "🔗 Отправьте ссылку на видео"
-	SendText  = "⏳ Подождите, загружаем..."
-	ErrorText = "❌ Ошибка установки, попробуйте снова"
-    ButtonText = "​📥 Скачать аудио"
+	StartText  = "🔗 Отправьте ссылку на видео"
+	SendText   = "⏳ Подождите, загружаем..."
+	ErrorText  = "❌ Ошибка установки, попробуйте снова"
+	ButtonText = "​📥 Скачать аудио"
 )
 
 func (s *Service) handleStartCommand(
@@ -53,11 +53,11 @@ func (s *Service) handleMsgWURL(
 	}
 	s.Tg.DeleteMessage(chatId, msg.Result.Id)
 	_, err = s.Tg.SendVideoWithButton(
-        chatId,
-        *videoFile,
-        ButtonText,
-        "Download audio",
-    )
+		chatId,
+		*videoFile,
+		ButtonText,
+		"Download audio",
+	)
 	if err != nil {
 		s.Tg.DeleteMessage(chatId, msg.Result.Id)
 		s.Tg.SendMessage(
@@ -70,8 +70,12 @@ func (s *Service) handleMsgWURL(
 }
 
 func (s *Service) handleCallbackQuery(
-    callback telegram.CallbackQuery,
+	callback telegram.CallbackQuery,
 ) error {
-    fmt.Println(callback)
-    return nil
+	s.Tg.DeleteVideoKeyboard(
+		callback.Message.Chat.Id,
+		callback.Message.Id,
+	)
+	fmt.Println(callback)
+	return nil
 }

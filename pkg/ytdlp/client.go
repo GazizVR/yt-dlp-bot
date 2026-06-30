@@ -70,6 +70,8 @@ func (c *Client) DownloadAudio(
 		"-P", outputPath,
 		"-x",
 		"--audio-format", "mp3",
+		"--js-runtime", "node",
+		"--remote-components", "ejs:github",
 		"--quiet",
 		"--no-warnings",
 		"--print", "after_move:filepath",

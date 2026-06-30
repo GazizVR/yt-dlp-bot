@@ -121,11 +121,12 @@ func (c *Client) SendVideoWithButton(
 		),
 	}
 
-	body, err := sendVideoRequest(
+	body, err := postRequest(
 		c.BaseURL,
 		c.urlPath(SendVideoMethod),
 		params,
 		video,
+		"video",
 		&response,
 	)
 	if err != nil {
@@ -204,4 +205,37 @@ func (c *Client) DeleteMessage(
 		return err
 	}
 	return nil
+}
+
+func (c *Client) SendAudio(
+	chatId int64,
+	audio os.File,
+) (*MessageResponse, error) {
+	var response MessageResponse
+	params := map[string]string{
+		"chat_id":      fmt.Sprintf("%d", chatId),
+		"reply_markup": `"inline_keyboard": [[]]`,
+	}
+
+	body, err := postRequest(
+		c.BaseURL,
+		c.urlPath(EditMessageReplyMarkup),
+		params,
+		audio,
+		"audio",
+		&response,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := CommonResponse{Ok: response.Ok}
+	if err := checkError(
+		resp,
+		body,
+		EditMessageReplyMarkup,
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
