@@ -33,6 +33,7 @@ func (s *Service) handleUpdate(
 		if update.Message.LinkPreview != nil {
 			if err := s.handleMsgWURL(
 				update.Message.Chat.Id,
+				update.Message.Id,
 				update.Message.LinkPreview.URL,
 			); err != nil {
 				return err

@@ -5,11 +5,15 @@ import (
 )
 
 const (
-	StartText  = "🔗 Отправьте ссылку на видео"
-	SendText   = "⏳ Подождите, загружаем..."
-	ErrorText  = "❌ Внутренняя ошибка, попробуйте снова"
-	ButtonText = "​📥 Скачать аудио"
+	StartText         = "🔗 Отправьте ссылку на видео"
+	SendText          = "⏳ Подождите, загружаем..."
+	ErrorText         = "❌ Внутренняя ошибка, попробуйте снова"
+	DownloadAudioText = "​📥 Скачать аудио"
 )
+
+func (s *Service) sendErrorMessage() {
+
+}
 
 func (s *Service) handleStartCommand(
 	chatId int64,
@@ -17,6 +21,7 @@ func (s *Service) handleStartCommand(
 	if _, err := s.Tg.SendMessage(
 		chatId,
 		StartText,
+		nil,
 		nil,
 	); err != nil {
 		return err
@@ -26,18 +31,21 @@ func (s *Service) handleStartCommand(
 
 func (s *Service) handleMsgWURL(
 	chatId int64,
+	messageId int64,
 	url string,
 ) error {
 	msg, err := s.Tg.SendMessage(
 		chatId,
 		SendText,
 		nil,
+		&messageId,
 	)
 	if err != nil {
 		s.Tg.SendMessage(
 			chatId,
 			ErrorText,
 			nil,
+			&messageId,
 		)
 		return err
 	}
@@ -54,7 +62,7 @@ func (s *Service) handleMsgWURL(
 		return err
 	}
 	button := &telegram.InlineButton{
-		Text: ButtonText,
+		Text: DownloadAudioText,
 		Data: url,
 	}
 	markup := telegram.NewInlineMarkup(
@@ -93,6 +101,7 @@ func (s *Service) handleCallbackQuery(
 			callback.Message.Chat.Id,
 			ErrorText,
 			nil,
+			&callback.Message.Id,
 		)
 		return err
 	}
@@ -106,6 +115,7 @@ func (s *Service) handleCallbackQuery(
 			callback.Message.Chat.Id,
 			ErrorText,
 			nil,
+			&callback.Message.Id,
 		)
 		return err
 	}

@@ -57,6 +57,7 @@ func (c *Client) SendMessage(
 	chatId int64,
 	text string,
 	markup *InlineMarkup,
+	msgIdToReply *int64,
 ) (*MessageResponse, error) {
 	params := map[string]string{
 		"chat_id": fmt.Sprintf("%d", chatId),
@@ -69,6 +70,12 @@ func (c *Client) SendMessage(
 			return nil, err
 		}
 		params["reply_markup"] = string(jsonMarkup)
+	}
+	if msgIdToReply != nil {
+		params["reply_parameters"] = fmt.Sprintf(
+			`{"message_id": %d}`,
+			*msgIdToReply,
+		)
 	}
 
 	response, err := c.messageRequest(
