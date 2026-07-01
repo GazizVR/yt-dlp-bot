@@ -3,6 +3,7 @@ package service
 import (
 	"bot/pkg/telegram"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -28,6 +29,69 @@ func (s *Service) handleStartCommand(
 	return nil
 }
 
+func (s *Service) sendMedia(
+	chatId int64,
+	messageId int64,
+	isVideo bool,
+	url string,
+) error {
+	var (
+		mediaFile     *os.File
+		err           error
+		markup        *telegram.InlineMarkup
+		formFieldName string
+		errText       string
+	)
+	if isVideo {
+		errText = againVideo
+		formFieldName = "video"
+		mediaFile, err = s.Dlp.DownloadVideo(
+			"tmp",
+			url,
+		)
+		button := &telegram.InlineButton{
+			Text: DownloadAudioText,
+			Data: fmt.Sprintf("%s-%s", sendAudio, url),
+		}
+		markup = telegram.NewInlineMarkup(
+			[]telegram.InlineButton{*button},
+		)
+	} else {
+		errText = againAudio
+		formFieldName = "audio"
+		mediaFile, err = s.Dlp.DownloadAudio(
+			"tmp",
+			url,
+		)
+		markup = nil
+	}
+
+	if err != nil {
+		s.editToError(
+			chatId,
+			messageId,
+			fmt.Sprintf("%s-%s", errText, url),
+		)
+		return err
+	}
+	_, err = s.Tg.EditMessageMedia(
+		chatId,
+		messageId,
+		formFieldName,
+		*mediaFile,
+		markup,
+	)
+	if err != nil {
+		s.editToError(
+			chatId,
+			messageId,
+			fmt.Sprintf("%s-%s", errText, url),
+		)
+		return err
+	}
+	return nil
+}
+
 func (s *Service) handleMsgWURL(
 	chatId int64,
 	messageId int64,
@@ -47,38 +111,12 @@ func (s *Service) handleMsgWURL(
 		)
 		return err
 	}
-	videoFile, err := s.Dlp.DownloadVideo(
-		"tmp",
-		url,
-	)
-	if err != nil {
-		s.editToError(
-			chatId,
-			msg.Result.Id,
-			fmt.Sprintf("%s-%s", againVideo, url),
-		)
-		return err
-	}
-	button := &telegram.InlineButton{
-		Text: DownloadAudioText,
-		Data: fmt.Sprintf("%s-%s", sendAudio, url),
-	}
-	markup := telegram.NewInlineMarkup(
-		[]telegram.InlineButton{*button},
-	)
-	_, err = s.Tg.EditMessageMedia(
+	if err := s.sendMedia(
 		chatId,
 		msg.Result.Id,
-		"video",
-		*videoFile,
-		markup,
-	)
-	if err != nil {
-		s.editToError(
-			chatId,
-			msg.Result.Id,
-			fmt.Sprintf("%s-%s", againVideo, url),
-		)
+		true,
+		url,
+	); err != nil {
 		return err
 	}
 	return nil
@@ -103,30 +141,12 @@ func (s *Service) handleCallbackQuery(
 			nil,
 			&callback.Message.Id,
 		)
-		audio, err := s.Dlp.DownloadAudio("tmp", url)
-		if err != nil {
-			s.editToError(
-				callback.Message.Chat.Id,
-				msg.Result.Id,
-				fmt.Sprintf("%s-%s", againAudio, url),
-			)
-			return err
-		}
-		_, err = s.Tg.EditMessageMedia(
-			callback.Message.Chat.Id,
+		s.sendMedia(
+			msg.Result.Chat.Id,
 			msg.Result.Id,
-			"audio",
-			*audio,
-			nil,
+			false,
+			url,
 		)
-		if err != nil {
-			s.editToError(
-				callback.Message.Chat.Id,
-				msg.Result.Id,
-				fmt.Sprintf("%s-%s", againAudio, url),
-			)
-			return err
-		}
 	case againVideo:
 		s.Tg.EditMessageText(
 			callback.Message.Chat.Id,
@@ -134,40 +154,12 @@ func (s *Service) handleCallbackQuery(
 			WaitText,
 			nil,
 		)
-		videoFile, err := s.Dlp.DownloadVideo(
-			"tmp",
-			url,
-		)
-		if err != nil {
-			s.editToError(
-				callback.Message.Chat.Id,
-				callback.Message.Id,
-				fmt.Sprintf("%s-%s", againVideo, url),
-			)
-			return err
-		}
-		button := &telegram.InlineButton{
-			Text: DownloadAudioText,
-			Data: fmt.Sprintf("%s-%s", sendAudio, url),
-		}
-		markup := telegram.NewInlineMarkup(
-			[]telegram.InlineButton{*button},
-		)
-		_, err = s.Tg.EditMessageMedia(
+		s.sendMedia(
 			callback.Message.Chat.Id,
 			callback.Message.Id,
-			"video",
-			*videoFile,
-			markup,
+			true,
+			url,
 		)
-		if err != nil {
-			s.editToError(
-				callback.Message.Chat.Id,
-				callback.Message.Id,
-				fmt.Sprintf("%s-%s", againVideo, url),
-			)
-			return err
-		}
 	case againAudio:
 		s.Tg.EditMessageText(
 			callback.Message.Chat.Id,
@@ -175,30 +167,12 @@ func (s *Service) handleCallbackQuery(
 			WaitText,
 			nil,
 		)
-		audio, err := s.Dlp.DownloadAudio("tmp", url)
-		if err != nil {
-			s.editToError(
-				callback.Message.Chat.Id,
-				callback.Message.Id,
-				fmt.Sprintf("%s-%s", againAudio, url),
-			)
-			return err
-		}
-		_, err = s.Tg.EditMessageMedia(
+		s.sendMedia(
 			callback.Message.Chat.Id,
 			callback.Message.Id,
-			"audio",
-			*audio,
-			nil,
+			false,
+			url,
 		)
-		if err != nil {
-			s.editToError(
-				callback.Message.Chat.Id,
-				callback.Message.Id,
-				fmt.Sprintf("%s-%s", againAudio, url),
-			)
-			return err
-		}
 	}
 	s.Tg.AnserCallbackQuery(callback.Id)
 	return nil
