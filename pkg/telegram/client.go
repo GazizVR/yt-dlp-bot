@@ -187,10 +187,17 @@ func (c *Client) DeleteVideoKeyboard(
 func (c *Client) SendAudio(
 	chatId int64,
 	audio os.File,
+	messageIdToReply *int64,
 ) (*MessageResponse, error) {
 	var response MessageResponse
 	params := map[string]string{
 		"chat_id": fmt.Sprintf("%d", chatId),
+	}
+	if messageIdToReply != nil {
+		params["reply_parameters"] = fmt.Sprintf(
+			`{"message_id": %d}`,
+			*messageIdToReply,
+		)
 	}
 
 	body, err := postRequest(

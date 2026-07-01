@@ -72,7 +72,6 @@ func (s *Service) handleCallbackQuery(
 	callback telegram.CallbackQuery,
 ) error {
 	url := callback.Data
-	s.Tg.AnserCallbackQuery(callback.Id)
 	s.Tg.DeleteVideoKeyboard(
 		callback.Message.Chat.Id,
 		callback.Message.Id,
@@ -85,7 +84,11 @@ func (s *Service) handleCallbackQuery(
 		)
 		return err
 	}
-	_, err = s.Tg.SendAudio(callback.Message.Chat.Id, *audio)
+	_, err = s.Tg.SendAudio(
+		callback.Message.Chat.Id,
+		*audio,
+		&callback.Message.Id,
+	)
 	if err != nil {
 		s.Tg.SendMessage(
 			callback.Message.Chat.Id,
@@ -93,5 +96,6 @@ func (s *Service) handleCallbackQuery(
 		)
 		return err
 	}
+	s.Tg.AnserCallbackQuery(callback.Id)
 	return nil
 }
