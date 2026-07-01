@@ -2,10 +2,6 @@ package service
 
 import (
 	"bot/pkg/telegram"
-	"fmt"
-	"log"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -47,24 +43,24 @@ func (s *Service) handleMsgWURL(
 		url,
 	)
 	if err != nil {
-		s.Tg.DeleteMessage(chatId, msg.Result.Id)
-		s.Tg.SendMessage(
+		s.Tg.EditMessageText(
 			chatId,
+			msg.Result.Id,
 			ErrorText,
 		)
 		return err
 	}
-	s.Tg.DeleteMessage(chatId, msg.Result.Id)
-	_, err = s.Tg.SendVideoWithButton(
+	_, err = s.Tg.EditMessageToVideo(
 		chatId,
+		msg.Result.Id,
 		*videoFile,
 		ButtonText,
-		fmt.Sprintf("%s-%d", url, chatId),
+		url,
 	)
 	if err != nil {
-		s.Tg.DeleteMessage(chatId, msg.Result.Id)
-		s.Tg.SendMessage(
+		s.Tg.EditMessageText(
 			chatId,
+			msg.Result.Id,
 			ErrorText,
 		)
 		return err
@@ -75,14 +71,7 @@ func (s *Service) handleMsgWURL(
 func (s *Service) handleCallbackQuery(
 	callback telegram.CallbackQuery,
 ) error {
-	data := callback.Data
-	url := data[:strings.LastIndex(data, "-")]
-	rawChatId := data[strings.Index(data, "-")+1:]
-	chatId, err := strconv.ParseInt(rawChatId, 10, 64)
-	if err != nil {
-		log.Println("Ошибка конвертации chatId: ", err)
-		return err
-	}
+	url := callback.Data
 	s.Tg.DeleteVideoKeyboard(
 		callback.Message.Chat.Id,
 		callback.Message.Id,
@@ -91,6 +80,6 @@ func (s *Service) handleCallbackQuery(
 	if err != nil {
 		return err
 	}
-	s.Tg.SendAudio(chatId, *audio)
+	s.Tg.SendAudio(callback.Message.Chat.Id, *audio)
 	return nil
 }

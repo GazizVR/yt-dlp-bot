@@ -21,11 +21,11 @@ func NewClient(
 }
 
 const (
-	GetUpdatesMethod       = "getUpdates"
-	SendMessageMethod      = "sendMessage"
-	SendVideoMethod        = "sendVideo"
-	DeleteMessageMethod    = "deleteMessage"
+	GetUpdates             = "getUpdates"
+	SendMessage            = "sendMessage"
+	EditMessageMedia       = "editMessageMedia"
 	EditMessageReplyMarkup = "editMessageReplyMarkup"
+	EditMessageText        = "editMessageText"
 )
 
 func (c *Client) urlPath(method string) string {
@@ -49,7 +49,7 @@ func (c *Client) GetUpdates(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(GetUpdatesMethod),
+		c.urlPath(GetUpdates),
 		params,
 		&response,
 	)
@@ -61,7 +61,7 @@ func (c *Client) GetUpdates(
 	if err := checkError(
 		resp,
 		body,
-		GetUpdatesMethod,
+		GetUpdates,
 	); err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (c *Client) SendMessage(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(SendMessageMethod),
+		c.urlPath(SendMessage),
 		params,
 		&response,
 	)
@@ -92,22 +92,28 @@ func (c *Client) SendMessage(
 	if err := checkError(
 		resp,
 		body,
-		SendMessageMethod,
+		SendMessage,
 	); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *Client) SendVideoWithButton(
+func (c *Client) EditMessageToVideo(
 	chatId int64,
+	messageId int64,
 	video os.File,
 	btnText string,
 	btnCallback string,
 ) (*MessageResponse, error) {
 	var response MessageResponse
 	params := map[string]string{
-		"chat_id": fmt.Sprintf("%d", chatId),
+		"chat_id":    fmt.Sprintf("%d", chatId),
+		"message_id": fmt.Sprintf("%d", messageId),
+		"media": `{
+			"type": "video",
+			"media": "attach://video"
+		}`,
 		"reply_markup": fmt.Sprintf(
 			`{
 				"inline_keyboard": [
@@ -123,7 +129,7 @@ func (c *Client) SendVideoWithButton(
 
 	body, err := postRequest(
 		c.BaseURL,
-		c.urlPath(SendVideoMethod),
+		c.urlPath(EditMessageMedia),
 		params,
 		video,
 		"video",
@@ -137,7 +143,7 @@ func (c *Client) SendVideoWithButton(
 	if err := checkError(
 		resp,
 		body,
-		SendVideoMethod,
+		EditMessageMedia,
 	); err != nil {
 		return nil, err
 	}
@@ -176,37 +182,6 @@ func (c *Client) DeleteVideoKeyboard(
 	return &response, nil
 }
 
-func (c *Client) DeleteMessage(
-	chatId int64,
-	messageId int64,
-) error {
-	var response CommonResponse
-	params := map[string]string{
-		"chat_id":    fmt.Sprintf("%d", chatId),
-		"message_id": fmt.Sprintf("%d", messageId),
-	}
-
-	body, err := getRequest(
-		c.BaseURL,
-		c.urlPath(DeleteMessageMethod),
-		params,
-		&response,
-	)
-	if err != nil {
-		return err
-	}
-
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(
-		resp,
-		body,
-		DeleteMessageMethod,
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (c *Client) SendAudio(
 	chatId int64,
 	audio os.File,
@@ -233,6 +208,39 @@ func (c *Client) SendAudio(
 		resp,
 		body,
 		EditMessageReplyMarkup,
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (c *Client) EditMessageText(
+	chatId int64,
+	messageId int64,
+	text string,
+) (*MessageResponse, error) {
+	var response MessageResponse
+	params := map[string]string{
+		"message_id": fmt.Sprintf("%d", messageId),
+		"chat_id":    fmt.Sprintf("%d", chatId),
+		"text":       text,
+	}
+
+	body, err := getRequest(
+		c.BaseURL,
+		c.urlPath(EditMessageText),
+		params,
+		&response,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := CommonResponse{Ok: response.Ok}
+	if err := checkError(
+		resp,
+		body,
+		EditMessageText,
 	); err != nil {
 		return nil, err
 	}
