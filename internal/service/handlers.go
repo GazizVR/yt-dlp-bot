@@ -7,12 +7,47 @@ import (
 const (
 	StartText         = "🔗 Отправьте ссылку на видео"
 	SendText          = "⏳ Подождите, загружаем..."
-	ErrorText         = "❌ Внутренняя ошибка, попробуйте снова"
 	DownloadAudioText = "​📥 Скачать аудио"
+	ErrorText         = "❌ Внутренняя ошибка, попробуйте снова"
+	TryAgainText      = "🔄 Еще раз"
 )
 
-func (s *Service) sendErrorMessage() {
+func (s *Service) sendError(
+	chatId int64,
+	msgToReply int64,
+) {
+	button := &telegram.InlineButton{
+		Text: TryAgainText,
+		Data: "Try again",
+	}
+	markup := telegram.NewInlineMarkup(
+		[]telegram.InlineButton{*button},
+	)
+	s.Tg.SendMessage(
+		chatId,
+		ErrorText,
+		markup,
+		&msgToReply,
+	)
+}
 
+func (s *Service) editToError(
+	chatId int64,
+	messageId int64,
+) {
+	button := &telegram.InlineButton{
+		Text: TryAgainText,
+		Data: "Try again",
+	}
+	markup := telegram.NewInlineMarkup(
+		[]telegram.InlineButton{*button},
+	)
+	s.Tg.EditMessageText(
+		chatId,
+		messageId,
+		ErrorText,
+		markup,
+	)
 }
 
 func (s *Service) handleStartCommand(
@@ -41,12 +76,7 @@ func (s *Service) handleMsgWURL(
 		&messageId,
 	)
 	if err != nil {
-		s.Tg.SendMessage(
-			chatId,
-			ErrorText,
-			nil,
-			&messageId,
-		)
+		s.sendError(chatId, messageId)
 		return err
 	}
 	videoFile, err := s.Dlp.DownloadVideo(
@@ -54,11 +84,7 @@ func (s *Service) handleMsgWURL(
 		url,
 	)
 	if err != nil {
-		s.Tg.EditMessageText(
-			chatId,
-			msg.Result.Id,
-			ErrorText,
-		)
+		s.editToError(chatId, msg.Result.Id)
 		return err
 	}
 	button := &telegram.InlineButton{
@@ -75,11 +101,7 @@ func (s *Service) handleMsgWURL(
 		markup,
 	)
 	if err != nil {
-		s.Tg.EditMessageText(
-			chatId,
-			msg.Result.Id,
-			ErrorText,
-		)
+		s.editToError(chatId, msg.Result.Id)
 		return err
 	}
 	return nil
@@ -97,11 +119,9 @@ func (s *Service) handleCallbackQuery(
 	)
 	audio, err := s.Dlp.DownloadAudio("tmp", url)
 	if err != nil {
-		s.Tg.SendMessage(
+		s.sendError(
 			callback.Message.Chat.Id,
-			ErrorText,
-			nil,
-			&callback.Message.Id,
+			callback.Message.Id,
 		)
 		return err
 	}
@@ -111,11 +131,9 @@ func (s *Service) handleCallbackQuery(
 		&callback.Message.Id,
 	)
 	if err != nil {
-		s.Tg.SendMessage(
+		s.sendError(
 			callback.Message.Chat.Id,
-			ErrorText,
-			nil,
-			&callback.Message.Id,
+			callback.Message.Id,
 		)
 		return err
 	}

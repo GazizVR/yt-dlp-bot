@@ -182,11 +182,20 @@ func (c *Client) EditMessageText(
 	chatId int64,
 	messageId int64,
 	text string,
+	markup *InlineMarkup,
 ) (*MessageResponse, error) {
 	params := map[string]string{
 		"message_id": fmt.Sprintf("%d", messageId),
 		"chat_id":    fmt.Sprintf("%d", chatId),
 		"text":       text,
+	}
+	if markup != nil {
+		jsonMarkup, err := json.Marshal(markup)
+		if err != nil {
+			log.Println("Ошибка преобразования markup json: ", err)
+			return nil, err
+		}
+		params["reply_markup"] = string(jsonMarkup)
 	}
 
 	response, err := c.messageRequest(
