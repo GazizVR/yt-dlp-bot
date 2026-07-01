@@ -17,6 +17,7 @@ func (s *Service) handleStartCommand(
 	if _, err := s.Tg.SendMessage(
 		chatId,
 		StartText,
+		nil,
 	); err != nil {
 		return err
 	}
@@ -30,11 +31,13 @@ func (s *Service) handleMsgWURL(
 	msg, err := s.Tg.SendMessage(
 		chatId,
 		SendText,
+		nil,
 	)
 	if err != nil {
 		s.Tg.SendMessage(
 			chatId,
 			ErrorText,
+			nil,
 		)
 		return err
 	}
@@ -89,6 +92,7 @@ func (s *Service) handleCallbackQuery(
 		s.Tg.SendMessage(
 			callback.Message.Chat.Id,
 			ErrorText,
+			nil,
 		)
 		return err
 	}
@@ -101,6 +105,7 @@ func (s *Service) handleCallbackQuery(
 		s.Tg.SendMessage(
 			callback.Message.Chat.Id,
 			ErrorText,
+			nil,
 		)
 		return err
 	}
