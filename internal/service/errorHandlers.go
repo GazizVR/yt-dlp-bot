@@ -3,9 +3,9 @@ package service
 import "bot/pkg/telegram"
 
 const (
-	sendAudio  = "sendaudio"
-	againVideo = "againVideo"
-	againAudio = "againAudio"
+	sendAudio  = "sa"
+	againVideo = "av"
+	againAudio = "aa"
 )
 
 func (s *Service) sendError(

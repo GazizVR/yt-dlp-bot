@@ -8,7 +8,7 @@ import (
 
 const (
 	StartText         = "🔗 Отправьте ссылку на видео"
-	WaitText          = "⏳ Подождите, загружаем..."
+	WaitText          = "⏳ Подождите, загружается..."
 	DownloadAudioText = "​📥 Скачать аудио"
 	ErrorText         = "❌ Внутренняя ошибка, попробуйте снова"
 	TryAgainText      = "🔄 Еще раз"
@@ -165,6 +165,37 @@ func (s *Service) handleCallbackQuery(
 				callback.Message.Chat.Id,
 				callback.Message.Id,
 				fmt.Sprintf("%s-%s", againVideo, url),
+			)
+			return err
+		}
+	case againAudio:
+		s.Tg.EditMessageText(
+			callback.Message.Chat.Id,
+			callback.Message.Id,
+			WaitText,
+			nil,
+		)
+		audio, err := s.Dlp.DownloadAudio("tmp", url)
+		if err != nil {
+			s.editToError(
+				callback.Message.Chat.Id,
+				callback.Message.Id,
+				fmt.Sprintf("%s-%s", againAudio, url),
+			)
+			return err
+		}
+		_, err = s.Tg.EditMessageMedia(
+			callback.Message.Chat.Id,
+			callback.Message.Id,
+			"audio",
+			*audio,
+			nil,
+		)
+		if err != nil {
+			s.editToError(
+				callback.Message.Chat.Id,
+				callback.Message.Id,
+				fmt.Sprintf("%s-%s", againAudio, url),
 			)
 			return err
 		}
