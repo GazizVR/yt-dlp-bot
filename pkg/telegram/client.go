@@ -209,16 +209,11 @@ func (c *Client) DeleteMessage(
 
 func (c *Client) SendAudio(
 	chatId int64,
-	messageIdToReply int64,
 	audio os.File,
 ) (*MessageResponse, error) {
 	var response MessageResponse
 	params := map[string]string{
 		"chat_id": fmt.Sprintf("%d", chatId),
-		"reply_parameters": fmt.Sprintf(
-			`{"message_id": %d}`,
-			messageIdToReply,
-		),
 	}
 
 	body, err := postRequest(
