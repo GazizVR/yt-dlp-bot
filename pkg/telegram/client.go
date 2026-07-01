@@ -129,12 +129,11 @@ func (c *Client) EditMessageToVideo(
 		),
 	}
 
-	body, err := postRequest(
+	body, err := postFormRequest(
 		c.BaseURL,
 		c.urlPath(EditMessageMedia),
 		params,
-		video,
-		"video",
+		map[string]os.File{"video": video},
 		&response,
 	)
 	if err != nil {
@@ -200,12 +199,11 @@ func (c *Client) SendAudio(
 		)
 	}
 
-	body, err := postRequest(
+	body, err := postFormRequest(
 		c.BaseURL,
 		c.urlPath(SendAudio),
 		params,
-		audio,
-		"audio",
+		map[string]os.File{"audio": audio},
 		&response,
 	)
 	if err != nil {

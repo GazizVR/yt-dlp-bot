@@ -54,27 +54,34 @@ func getRequest[T any](
 	return respBody, nil
 }
 
-func postRequest[T any](
+func postFormRequest[T any](
 	baseURL string,
 	urlPath string,
-	params map[string]string,
-	file os.File,
-	formFieldName string,
+	fields map[string]string,
+	files map[string]os.File,
 	v T,
 ) ([]byte, error) {
-	defer file.Close()
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile(formFieldName, file.Name())
-	if err != nil {
-		log.Println("Ошибка создания multipart file: ", err)
-		return nil, err
+	for k, v := range fields {
+		if err := writer.WriteField(k, v); err != nil {
+			log.Println("Ошибка создания form field: ", err)
+			return nil, err
+		}
 	}
-	_, err = io.Copy(part, &file)
-	if err != nil {
-		log.Println("Ошибка записи данных в part: ", err)
-		return nil, err
+
+	for k, v := range files {
+		part, err := writer.CreateFormFile(k, v.Name())
+		if err != nil {
+			log.Println("Ошибка создания multipart file: ", err)
+			return nil, err
+		}
+		_, err = io.Copy(part, &v)
+		if err != nil {
+			log.Println("Ошибка записи данных в part: ", err)
+			return nil, err
+		}
 	}
 
 	if err := writer.Close(); err != nil {
@@ -89,12 +96,6 @@ func postRequest[T any](
 	}
 
 	u.Path = urlPath
-
-	q := u.Query()
-	for k, v := range params {
-		q.Set(k, v)
-	}
-	u.RawQuery = q.Encode()
 
 	urlStr := u.String()
 
