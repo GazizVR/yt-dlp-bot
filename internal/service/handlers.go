@@ -89,12 +89,6 @@ func (s *Service) handleCallbackQuery(
 ) error {
 	url := callback.Data[strings.Index(callback.Data, "-")+1:]
 	action := callback.Data[:strings.Index(callback.Data, "-")]
-	msg, _ := s.Tg.SendMessage(
-		callback.Message.Chat.Id,
-		WaitText,
-		nil,
-		&callback.Message.Id,
-	)
 	switch action {
 	case sendAudio:
 		markup := telegram.NewInlineMarkup([]telegram.InlineButton{})
@@ -102,6 +96,12 @@ func (s *Service) handleCallbackQuery(
 			callback.Message.Chat.Id,
 			callback.Message.Id,
 			*markup,
+		)
+		msg, _ := s.Tg.SendMessage(
+			callback.Message.Chat.Id,
+			WaitText,
+			nil,
+			&callback.Message.Id,
 		)
 		audio, err := s.Dlp.DownloadAudio("tmp", url)
 		if err != nil {
@@ -124,6 +124,47 @@ func (s *Service) handleCallbackQuery(
 				callback.Message.Chat.Id,
 				msg.Result.Id,
 				fmt.Sprintf("%s-%s", againAudio, url),
+			)
+			return err
+		}
+	case againVideo:
+		s.Tg.EditMessageText(
+			callback.Message.Chat.Id,
+			callback.Message.Id,
+			WaitText,
+			nil,
+		)
+		videoFile, err := s.Dlp.DownloadVideo(
+			"tmp",
+			url,
+		)
+		if err != nil {
+			s.editToError(
+				callback.Message.Chat.Id,
+				callback.Message.Id,
+				fmt.Sprintf("%s-%s", againVideo, url),
+			)
+			return err
+		}
+		button := &telegram.InlineButton{
+			Text: DownloadAudioText,
+			Data: fmt.Sprintf("%s-%s", sendAudio, url),
+		}
+		markup := telegram.NewInlineMarkup(
+			[]telegram.InlineButton{*button},
+		)
+		_, err = s.Tg.EditMessageMedia(
+			callback.Message.Chat.Id,
+			callback.Message.Id,
+			"video",
+			*videoFile,
+			markup,
+		)
+		if err != nil {
+			s.editToError(
+				callback.Message.Chat.Id,
+				callback.Message.Id,
+				fmt.Sprintf("%s-%s", againVideo, url),
 			)
 			return err
 		}
