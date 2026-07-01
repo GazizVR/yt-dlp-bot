@@ -182,7 +182,7 @@ func (c *Client) EditMessageText(
 	return response, nil
 }
 
-func (c *Client) AnserCallbackQuery(
+func (c *Client) AnswerCallbackQuery(
 	queryId string,
 ) (*CommonResponse, error) {
 	params := map[string]string{
