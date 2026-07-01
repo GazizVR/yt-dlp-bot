@@ -1,7 +1,9 @@
 package telegram
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -21,13 +23,13 @@ func NewClient(
 }
 
 const (
-	GetUpdates             = "getUpdates"
-	SendMessage            = "sendMessage"
-	EditMessageMedia       = "editMessageMedia"
-	EditMessageReplyMarkup = "editMessageReplyMarkup"
-	EditMessageText        = "editMessageText"
-	AnswerCallBackQuery    = "answerCallbackQuery"
-	SendAudio              = "sendAudio"
+	getUpdatesMethod      = "getUpdates"
+	sendMessageMethod     = "sendMessage"
+	editMediaMethod       = "editMessageMedia"
+	editReplyMarkupMethod = "editMessageReplyMarkup"
+	editTextMethod        = "editMessageText"
+	answerQueryMethod     = "answerCallbackQuery"
+	sendAudioMethod       = "sendAudio"
 )
 
 func (c *Client) urlPath(method string) string {
@@ -51,7 +53,7 @@ func (c *Client) GetUpdates(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(GetUpdates),
+		c.urlPath(getUpdatesMethod),
 		params,
 		&response,
 	)
@@ -63,7 +65,7 @@ func (c *Client) GetUpdates(
 	if err := checkError(
 		resp,
 		body,
-		GetUpdates,
+		getUpdatesMethod,
 	); err != nil {
 		return nil, err
 	}
@@ -82,7 +84,7 @@ func (c *Client) SendMessage(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(SendMessage),
+		c.urlPath(sendMessageMethod),
 		params,
 		&response,
 	)
@@ -94,19 +96,18 @@ func (c *Client) SendMessage(
 	if err := checkError(
 		resp,
 		body,
-		SendMessage,
+		sendMessageMethod,
 	); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *Client) EditMessageToVideo(
+func (c *Client) EditMessageMedia(
 	chatId int64,
 	messageId int64,
 	video os.File,
-	btnText string,
-	btnCallback string,
+	markup *InlineMarkup,
 ) (*MessageResponse, error) {
 	var response MessageResponse
 	params := map[string]string{
@@ -116,22 +117,19 @@ func (c *Client) EditMessageToVideo(
 			"type": "video",
 			"media": "attach://video"
 		}`,
-		"reply_markup": fmt.Sprintf(
-			`{
-				"inline_keyboard": [
-					[
-						{"text": "%s", "callback_data": "%s"}
-					]
-				]
-			}`,
-			btnText,
-			btnCallback,
-		),
+	}
+	if markup != nil {
+		jsonMarkup, err := json.Marshal(markup)
+		if err != nil {
+			log.Println("Ошибка преобразования markup json: ", err)
+			return nil, err
+		}
+		params["reply_markup"] = string(jsonMarkup)
 	}
 
 	body, err := postFormRequest(
 		c.BaseURL,
-		c.urlPath(EditMessageMedia),
+		c.urlPath(editMediaMethod),
 		params,
 		map[string]os.File{"video": video},
 		&response,
@@ -144,27 +142,33 @@ func (c *Client) EditMessageToVideo(
 	if err := checkError(
 		resp,
 		body,
-		EditMessageMedia,
+		editMediaMethod,
 	); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *Client) DeleteVideoKeyboard(
+func (c *Client) EditMessageReplyMarkup(
 	chatId int64,
 	messageId int64,
+	markup InlineMarkup,
 ) (*MessageResponse, error) {
 	var response MessageResponse
+	jsonMarkup, err := json.Marshal(markup)
+	if err != nil {
+		log.Println("Ошибка преобразования markup json: ", err)
+		return nil, err
+	}
 	params := map[string]string{
 		"chat_id":      fmt.Sprintf("%d", chatId),
 		"message_id":   fmt.Sprintf("%d", messageId),
-		"reply_markup": `{"inline_keyboard": [[]]}`,
+		"reply_markup": string(jsonMarkup),
 	}
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(EditMessageReplyMarkup),
+		c.urlPath(editReplyMarkupMethod),
 		params,
 		&response,
 	)
@@ -176,7 +180,7 @@ func (c *Client) DeleteVideoKeyboard(
 	if err := checkError(
 		resp,
 		body,
-		EditMessageReplyMarkup,
+		editReplyMarkupMethod,
 	); err != nil {
 		return nil, err
 	}
@@ -201,7 +205,7 @@ func (c *Client) SendAudio(
 
 	body, err := postFormRequest(
 		c.BaseURL,
-		c.urlPath(SendAudio),
+		c.urlPath(sendAudioMethod),
 		params,
 		map[string]os.File{"audio": audio},
 		&response,
@@ -214,7 +218,7 @@ func (c *Client) SendAudio(
 	if err := checkError(
 		resp,
 		body,
-		SendAudio,
+		sendAudioMethod,
 	); err != nil {
 		return nil, err
 	}
@@ -235,7 +239,7 @@ func (c *Client) EditMessageText(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(EditMessageText),
+		c.urlPath(editTextMethod),
 		params,
 		&response,
 	)
@@ -247,7 +251,7 @@ func (c *Client) EditMessageText(
 	if err := checkError(
 		resp,
 		body,
-		EditMessageText,
+		editTextMethod,
 	); err != nil {
 		return nil, err
 	}
@@ -264,7 +268,7 @@ func (c *Client) AnserCallbackQuery(
 
 	body, err := getRequest(
 		c.BaseURL,
-		c.urlPath(AnswerCallBackQuery),
+		c.urlPath(answerQueryMethod),
 		params,
 		&response,
 	)
@@ -276,7 +280,7 @@ func (c *Client) AnserCallbackQuery(
 	if err := checkError(
 		resp,
 		body,
-		AnswerCallBackQuery,
+		answerQueryMethod,
 	); err != nil {
 		return nil, err
 	}

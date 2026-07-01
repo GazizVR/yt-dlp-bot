@@ -50,12 +50,18 @@ func (s *Service) handleMsgWURL(
 		)
 		return err
 	}
-	_, err = s.Tg.EditMessageToVideo(
+	button := &telegram.InlineButton{
+		Text: ButtonText,
+		Data: url,
+	}
+	markup := telegram.NewInlineMarkup(
+		[]telegram.InlineButton{*button},
+	)
+	_, err = s.Tg.EditMessageMedia(
 		chatId,
 		msg.Result.Id,
 		*videoFile,
-		ButtonText,
-		url,
+		markup,
 	)
 	if err != nil {
 		s.Tg.EditMessageText(
@@ -72,9 +78,11 @@ func (s *Service) handleCallbackQuery(
 	callback telegram.CallbackQuery,
 ) error {
 	url := callback.Data
-	s.Tg.DeleteVideoKeyboard(
+	markup := telegram.NewInlineMarkup([]telegram.InlineButton{})
+	s.Tg.EditMessageReplyMarkup(
 		callback.Message.Chat.Id,
 		callback.Message.Id,
+		*markup,
 	)
 	audio, err := s.Dlp.DownloadAudio("tmp", url)
 	if err != nil {
