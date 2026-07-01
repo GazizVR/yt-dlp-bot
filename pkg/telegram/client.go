@@ -27,6 +27,7 @@ const (
 	EditMessageReplyMarkup = "editMessageReplyMarkup"
 	EditMessageText        = "editMessageText"
 	AnswerCallBackQuery    = "answerCallbackQuery"
+	SendAudio              = "sendAudio"
 )
 
 func (c *Client) urlPath(method string) string {
@@ -194,7 +195,7 @@ func (c *Client) SendAudio(
 
 	body, err := postRequest(
 		c.BaseURL,
-		c.urlPath(EditMessageReplyMarkup),
+		c.urlPath(SendAudio),
 		params,
 		audio,
 		"audio",
@@ -208,7 +209,7 @@ func (c *Client) SendAudio(
 	if err := checkError(
 		resp,
 		body,
-		EditMessageReplyMarkup,
+		SendAudio,
 	); err != nil {
 		return nil, err
 	}

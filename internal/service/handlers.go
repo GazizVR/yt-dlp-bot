@@ -7,7 +7,7 @@ import (
 const (
 	StartText  = "🔗 Отправьте ссылку на видео"
 	SendText   = "⏳ Подождите, загружаем..."
-	ErrorText  = "❌ Ошибка установки, попробуйте снова"
+	ErrorText  = "❌ Внутренняя ошибка, попробуйте снова"
 	ButtonText = "​📥 Скачать аудио"
 )
 
@@ -79,8 +79,19 @@ func (s *Service) handleCallbackQuery(
 	)
 	audio, err := s.Dlp.DownloadAudio("tmp", url)
 	if err != nil {
+		s.Tg.SendMessage(
+			callback.Message.Chat.Id,
+			ErrorText,
+		)
 		return err
 	}
-	s.Tg.SendAudio(callback.Message.Chat.Id, *audio)
+	_, err = s.Tg.SendAudio(callback.Message.Chat.Id, *audio)
+	if err != nil {
+		s.Tg.SendMessage(
+			callback.Message.Chat.Id,
+			ErrorText,
+		)
+		return err
+	}
 	return nil
 }
