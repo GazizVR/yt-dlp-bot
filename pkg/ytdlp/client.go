@@ -43,6 +43,7 @@ func (c *Client) DownloadVideo(
 ) (*os.File, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
+        "-o", "%(id)s-video.%(ext)s",
 		"--js-runtime", "node",
 		"--remote-components", "ejs:github",
 		"--quiet",
@@ -68,6 +69,7 @@ func (c *Client) DownloadAudio(
 ) (*os.File, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
+        "-o", "%(id)s-audio.%(ext)s",
 		"-x",
 		"--audio-format", "mp3",
 		"--js-runtime", "node",
