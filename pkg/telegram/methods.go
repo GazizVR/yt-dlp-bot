@@ -58,7 +58,6 @@ func (c *Client) SendMessage(
 	text string,
 	markup *InlineMarkup,
 ) (*MessageResponse, error) {
-	var response MessageResponse
 	params := map[string]string{
 		"chat_id": fmt.Sprintf("%d", chatId),
 		"text":    text,
@@ -72,25 +71,42 @@ func (c *Client) SendMessage(
 		params["reply_markup"] = string(jsonMarkup)
 	}
 
-	body, err := getRequest(
-		c.BaseURL,
-		c.urlPath(sendMessageMethod),
+	response, err := c.messageRequest(
 		params,
-		&response,
+		sendMessageMethod,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(
-		resp,
-		body,
-		sendMessageMethod,
-	); err != nil {
+	return response, nil
+}
+
+func (c *Client) SendAudio(
+	chatId int64,
+	audio os.File,
+	messageIdToReply *int64,
+) (*MessageResponse, error) {
+	params := map[string]string{
+		"chat_id": fmt.Sprintf("%d", chatId),
+	}
+	if messageIdToReply != nil {
+		params["reply_parameters"] = fmt.Sprintf(
+			`{"message_id": %d}`,
+			*messageIdToReply,
+		)
+	}
+
+	response, err := c.mediaRequest(
+		params,
+		sendAudioMethod,
+		map[string]os.File{"audio": audio},
+	)
+	if err != nil {
 		return nil, err
 	}
-	return &response, nil
+
+	return response, nil
 }
 
 func (c *Client) EditMessageMedia(
@@ -99,7 +115,6 @@ func (c *Client) EditMessageMedia(
 	video os.File,
 	markup *InlineMarkup,
 ) (*MessageResponse, error) {
-	var response MessageResponse
 	params := map[string]string{
 		"chat_id":    fmt.Sprintf("%d", chatId),
 		"message_id": fmt.Sprintf("%d", messageId),
@@ -117,26 +132,16 @@ func (c *Client) EditMessageMedia(
 		params["reply_markup"] = string(jsonMarkup)
 	}
 
-	body, err := postFormRequest(
-		c.BaseURL,
-		c.urlPath(editMediaMethod),
+	response, err := c.mediaRequest(
 		params,
+		editMediaMethod,
 		map[string]os.File{"video": video},
-		&response,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(
-		resp,
-		body,
-		editMediaMethod,
-	); err != nil {
-		return nil, err
-	}
-	return &response, nil
+	return response, nil
 }
 
 func (c *Client) EditMessageReplyMarkup(
@@ -144,7 +149,6 @@ func (c *Client) EditMessageReplyMarkup(
 	messageId int64,
 	markup InlineMarkup,
 ) (*MessageResponse, error) {
-	var response MessageResponse
 	jsonMarkup, err := json.Marshal(markup)
 	if err != nil {
 		log.Println("Ошибка преобразования markup json: ", err)
@@ -156,63 +160,15 @@ func (c *Client) EditMessageReplyMarkup(
 		"reply_markup": string(jsonMarkup),
 	}
 
-	body, err := getRequest(
-		c.BaseURL,
-		c.urlPath(editReplyMarkupMethod),
+	response, err := c.messageRequest(
 		params,
-		&response,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(
-		resp,
-		body,
 		editReplyMarkupMethod,
-	); err != nil {
-		return nil, err
-	}
-	return &response, nil
-}
-
-func (c *Client) SendAudio(
-	chatId int64,
-	audio os.File,
-	messageIdToReply *int64,
-) (*MessageResponse, error) {
-	var response MessageResponse
-	params := map[string]string{
-		"chat_id": fmt.Sprintf("%d", chatId),
-	}
-	if messageIdToReply != nil {
-		params["reply_parameters"] = fmt.Sprintf(
-			`{"message_id": %d}`,
-			*messageIdToReply,
-		)
-	}
-
-	body, err := postFormRequest(
-		c.BaseURL,
-		c.urlPath(sendAudioMethod),
-		params,
-		map[string]os.File{"audio": audio},
-		&response,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(
-		resp,
-		body,
-		sendAudioMethod,
-	); err != nil {
-		return nil, err
-	}
-	return &response, nil
+	return response, nil
 }
 
 func (c *Client) EditMessageText(
@@ -220,59 +176,37 @@ func (c *Client) EditMessageText(
 	messageId int64,
 	text string,
 ) (*MessageResponse, error) {
-	var response MessageResponse
 	params := map[string]string{
 		"message_id": fmt.Sprintf("%d", messageId),
 		"chat_id":    fmt.Sprintf("%d", chatId),
 		"text":       text,
 	}
 
-	body, err := getRequest(
-		c.BaseURL,
-		c.urlPath(editTextMethod),
+	response, err := c.messageRequest(
 		params,
-		&response,
+		editTextMethod,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(
-		resp,
-		body,
-		editTextMethod,
-	); err != nil {
-		return nil, err
-	}
-	return &response, nil
+	return response, nil
 }
 
 func (c *Client) AnserCallbackQuery(
 	queryId string,
 ) (*CommonResponse, error) {
-	var response CommonResponse
 	params := map[string]string{
 		"callback_query_id": queryId,
 	}
 
-	body, err := getRequest(
-		c.BaseURL,
-		c.urlPath(answerQueryMethod),
+	response, _, err := c.commonRequest(
 		params,
-		&response,
+		answerQueryMethod,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := CommonResponse{Ok: response.Ok}
-	if err := checkError(
-		resp,
-		body,
-		answerQueryMethod,
-	); err != nil {
-		return nil, err
-	}
-	return &response, nil
+	return response, nil
 }
