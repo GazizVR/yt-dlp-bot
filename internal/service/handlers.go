@@ -8,7 +8,7 @@ import (
 
 const (
 	StartText         = "🔗 Отправьте ссылку на видео"
-	SendText          = "⏳ Подождите, загружаем..."
+	WaitText          = "⏳ Подождите, загружаем..."
 	DownloadAudioText = "​📥 Скачать аудио"
 	ErrorText         = "❌ Внутренняя ошибка, попробуйте снова"
 	TryAgainText      = "🔄 Еще раз"
@@ -35,7 +35,7 @@ func (s *Service) handleMsgWURL(
 ) error {
 	msg, err := s.Tg.SendMessage(
 		chatId,
-		SendText,
+		WaitText,
 		nil,
 		&messageId,
 	)
@@ -69,6 +69,7 @@ func (s *Service) handleMsgWURL(
 	_, err = s.Tg.EditMessageMedia(
 		chatId,
 		msg.Result.Id,
+		"video",
 		*videoFile,
 		markup,
 	)
@@ -88,6 +89,12 @@ func (s *Service) handleCallbackQuery(
 ) error {
 	url := callback.Data[strings.Index(callback.Data, "-")+1:]
 	action := callback.Data[:strings.Index(callback.Data, "-")]
+	msg, _ := s.Tg.SendMessage(
+		callback.Message.Chat.Id,
+		WaitText,
+		nil,
+		&callback.Message.Id,
+	)
 	switch action {
 	case sendAudio:
 		markup := telegram.NewInlineMarkup([]telegram.InlineButton{})
@@ -98,22 +105,24 @@ func (s *Service) handleCallbackQuery(
 		)
 		audio, err := s.Dlp.DownloadAudio("tmp", url)
 		if err != nil {
-			s.sendError(
+			s.editToError(
 				callback.Message.Chat.Id,
-				callback.Message.Id,
+				msg.Result.Id,
 				fmt.Sprintf("%s-%s", againAudio, url),
 			)
 			return err
 		}
-		_, err = s.Tg.SendAudio(
+		_, err = s.Tg.EditMessageMedia(
 			callback.Message.Chat.Id,
+			msg.Result.Id,
+			"audio",
 			*audio,
-			&callback.Message.Id,
+			nil,
 		)
 		if err != nil {
-			s.sendError(
+			s.editToError(
 				callback.Message.Chat.Id,
-				callback.Message.Id,
+				msg.Result.Id,
 				fmt.Sprintf("%s-%s", againAudio, url),
 			)
 			return err
