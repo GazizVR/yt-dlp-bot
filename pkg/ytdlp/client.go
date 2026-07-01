@@ -44,6 +44,7 @@ func (c *Client) DownloadVideo(
 	path, err := c.runBin(
 		"-P", outputPath,
 		"-o", "%(id)s-video.%(ext)s",
+		"--recode-video", "mp4",
 		"--js-runtime", "node",
 		"--remote-components", "ejs:github",
 		"--cookies-from-browser", "firefox",
