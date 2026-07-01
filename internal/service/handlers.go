@@ -72,6 +72,7 @@ func (s *Service) handleCallbackQuery(
 	callback telegram.CallbackQuery,
 ) error {
 	url := callback.Data
+	s.Tg.AnserCallbackQuery(callback.Id)
 	s.Tg.DeleteVideoKeyboard(
 		callback.Message.Chat.Id,
 		callback.Message.Id,

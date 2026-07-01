@@ -26,6 +26,7 @@ const (
 	EditMessageMedia       = "editMessageMedia"
 	EditMessageReplyMarkup = "editMessageReplyMarkup"
 	EditMessageText        = "editMessageText"
+	AnswerCallBackQuery    = "answerCallbackQuery"
 )
 
 func (c *Client) urlPath(method string) string {
@@ -158,7 +159,7 @@ func (c *Client) DeleteVideoKeyboard(
 	params := map[string]string{
 		"chat_id":      fmt.Sprintf("%d", chatId),
 		"message_id":   fmt.Sprintf("%d", messageId),
-		"reply_markup": `"inline_keyboard": [[]]`,
+		"reply_markup": `{"inline_keyboard": [[]]}`,
 	}
 
 	body, err := getRequest(
@@ -241,6 +242,35 @@ func (c *Client) EditMessageText(
 		resp,
 		body,
 		EditMessageText,
+	); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (c *Client) AnserCallbackQuery(
+	queryId string,
+) (*CommonResponse, error) {
+	var response CommonResponse
+	params := map[string]string{
+		"callback_query_id": queryId,
+	}
+
+	body, err := getRequest(
+		c.BaseURL,
+		c.urlPath(AnswerCallBackQuery),
+		params,
+		&response,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := CommonResponse{Ok: response.Ok}
+	if err := checkError(
+		resp,
+		body,
+		AnswerCallBackQuery,
 	); err != nil {
 		return nil, err
 	}
