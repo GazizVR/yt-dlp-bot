@@ -3,38 +3,25 @@ package ytdlp
 import (
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 )
 
 type Client struct {
-	BinPath string
+	BinPath     string
+	CookiesPath string
+	JsRuntime   string
 }
 
-func NewClient(binPath string) *Client {
+func NewClient(
+	binPath string,
+	cookiesPath string,
+	jsRuntime string,
+) *Client {
 	return &Client{
-		BinPath: binPath,
+		BinPath:     binPath,
+		CookiesPath: cookiesPath,
+		JsRuntime:   jsRuntime,
 	}
-}
-
-func (c *Client) runBin(args ...string) (*string, error) {
-	path, err := exec.LookPath(c.BinPath)
-	if err != nil {
-		log.Println("Бинарник yt-dlp не найден: ", err)
-		return nil, err
-	}
-	cmd := exec.Command(path, args...)
-	out, err := cmd.Output()
-	if err != nil {
-		log.Printf(
-			"Ошибка при работе программы: %s\nВывод: %s\n",
-			err.Error(),
-			string(out),
-		)
-		return nil, err
-	}
-	filePath := string(out)
-	return &filePath, nil
 }
 
 func (c *Client) DownloadVideo(
@@ -43,14 +30,7 @@ func (c *Client) DownloadVideo(
 ) (*os.File, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
-		"-o", "%(id)s-video.%(ext)s",
 		"--recode-video", "mp4",
-		"--js-runtime", "node",
-		"--remote-components", "ejs:github",
-		"--cookies-from-browser", "firefox",
-		"--quiet",
-		"--no-warnings",
-		"--print", "after_move:filepath",
 		mediaURL,
 	)
 	if err != nil {
@@ -71,15 +51,8 @@ func (c *Client) DownloadAudio(
 ) (*os.File, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
-		"-o", "%(id)s-audio.%(ext)s",
 		"-x",
 		"--audio-format", "mp3",
-		"--js-runtime", "node",
-		"--remote-components", "ejs:github",
-		"--cookies-from-browser", "firefox",
-		"--quiet",
-		"--no-warnings",
-		"--print", "after_move:filepath",
 		mediaURL,
 	)
 	if err != nil {

@@ -6,6 +6,8 @@ type Config struct {
 	TelegramToken      string
 	TelegramApiBaseURL string
 	YtDlpBinPath       string
+	CookiesPath        string
+	JsRuntime          string
 }
 
 func Load() *Config {
@@ -13,5 +15,7 @@ func Load() *Config {
 		TelegramToken:      os.Getenv("TOKEN"),
 		TelegramApiBaseURL: os.Getenv("BASE_URL"),
 		YtDlpBinPath:       os.Getenv("YT_DLP_PATH"),
+		CookiesPath:        os.Getenv("COOKIES_PATH"),
+		JsRuntime:          os.Getenv("JS_RUNTIME"),
 	}
 }

@@ -11,7 +11,11 @@ import (
 func main() {
 	cfg := config.Load()
 	telegram := telegram.NewClient(cfg.TelegramToken, cfg.TelegramApiBaseURL)
-	ytdlp := ytdlp.NewClient(cfg.YtDlpBinPath)
+	ytdlp := ytdlp.NewClient(
+		cfg.YtDlpBinPath,
+		cfg.CookiesPath,
+		cfg.JsRuntime,
+	)
 	service := service.NewService(telegram, ytdlp)
 	log.Println("Сервер запускается")
 	if err := service.Run(); err != nil {
