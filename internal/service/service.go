@@ -50,33 +50,23 @@ func (s *Service) handleUpdate(
 	return nil
 }
 
-func (s *Service) handleUpdates(
-	lastUpdateId *int64,
-) error {
-	response, err := s.Tg.GetUpdates(
-		*lastUpdateId,
-		100,
-		20,
-		[]string{"message", "callback_query"},
-	)
-	if err != nil {
-		return err
-	}
-	for _, u := range response.Result {
-		*lastUpdateId = u.Id
-		go s.handleUpdate(u)
-	}
-	*lastUpdateId += 1
-	return nil
-}
-
 func (s *Service) Run() error {
 	var lastUpdateId int64
 	for {
-		if err := s.handleUpdates(&lastUpdateId); err != nil {
-			time.Sleep(1 * time.Second)
+		response, err := s.Tg.GetUpdates(
+			lastUpdateId,
+			100,
+			20,
+			[]string{"message", "callback_query"},
+		)
+		if err != nil {
+			time.Sleep(800 * time.Millisecond)
 			continue
 		}
-		time.Sleep(1 * time.Second)
+		for _, u := range response.Result {
+			lastUpdateId = u.Id
+			go s.handleUpdate(u)
+		}
+		lastUpdateId += 1
 	}
 }
