@@ -56,7 +56,7 @@ func (s *Service) handleUpdates(
 	response, err := s.Tg.GetUpdates(
 		*lastUpdateId,
 		100,
-		60,
+		20,
 		[]string{"message", "callback_query"},
 	)
 	if err != nil {

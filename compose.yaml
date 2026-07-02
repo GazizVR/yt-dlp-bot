@@ -1,0 +1,17 @@
+services:
+  telegram-server:
+    image: telegram-bot-server:latest
+    ports: ["8081:8081"]
+    environment:
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+  bot-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TOKEN=${TOKEN}
+      - BASE_URL=${BASE_URL}
+      - YT_DLP_PATH=${YT_DLP_PATH}
+      - COOKIES_PATH=${COOKIES_PATH}
+      - JS_RUNTIME=${JS_RUNTIME}

@@ -7,6 +7,8 @@ COPY go.mod .
 COPY go.sum .
 
 COPY yt-dlp .
+COPY cookies.txt .
 
+RUN apt update -y && apt install nodejs -y
 RUN go build -o app cmd/main.go
 CMD ["./app"]
