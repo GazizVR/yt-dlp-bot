@@ -1,6 +1,10 @@
 services:
   telegram-server:
-    image: telegram-bot-server:latest
+    build: 
+      context: .
+      dockerfile: telegram-bot-server/Dockerfile
+      args:
+        - BUILD_JOBS=${BUILD_JOBS}
     ports: ["${TELEGRAM_HTTP_PORT}:${TELEGRAM_HTTP_PORT}"]
     environment:
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
