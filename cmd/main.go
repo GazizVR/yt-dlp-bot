@@ -15,6 +15,7 @@ func main() {
 		cfg.YtDlpBinPath,
 		cfg.CookiesPath,
 		cfg.JsRuntime,
+		cfg.Browser,
 	)
 	service := service.NewService(telegram, ytdlp)
 	log.Println("Сервер запускается")

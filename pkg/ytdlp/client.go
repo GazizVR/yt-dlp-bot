@@ -10,17 +10,20 @@ type Client struct {
 	BinPath     string
 	CookiesPath string
 	JsRuntime   string
+	Browser     string
 }
 
 func NewClient(
 	binPath string,
 	cookiesPath string,
 	jsRuntime string,
+	browser string,
 ) *Client {
 	return &Client{
 		BinPath:     binPath,
 		CookiesPath: cookiesPath,
 		JsRuntime:   jsRuntime,
+		Browser:     browser,
 	}
 }
 
@@ -30,7 +33,7 @@ func (c *Client) DownloadVideo(
 ) (*os.File, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
-		"--recode-video", "mp4",
+		"--remux-video", "mp4",
 		mediaURL,
 	)
 	if err != nil {

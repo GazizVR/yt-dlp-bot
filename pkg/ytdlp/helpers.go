@@ -1,6 +1,7 @@
 package ytdlp
 
 import (
+	"bytes"
 	"log"
 	"os/exec"
 )
@@ -34,10 +35,12 @@ func (c *Client) runBin(args ...string) (*string, error) {
 	cmd := exec.Command(path, args...)
 	out, err := cmd.Output()
 	if err != nil {
+		var stdErr bytes.Buffer
+		cmd.Stderr = &stdErr
 		log.Printf(
-			"Ошибка при работы программы: %s\nВывод: %s\n",
+			"Ошибка при работе программы: %s\nВывод: %s\n",
 			err.Error(),
-			string(out),
+			stdErr.String(),
 		)
 		return nil, err
 	}
