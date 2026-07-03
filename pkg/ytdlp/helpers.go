@@ -22,6 +22,10 @@ func (c *Client) baseArgs() []string {
 		args = append(args, "--js-runtime")
 		args = append(args, c.JsRuntime)
 	}
+	if len(c.Browser) > 0 {
+		args = append(args, "--cookies-from-browser")
+		args = append(args, c.Browser)
+	}
 	return args
 }
 
