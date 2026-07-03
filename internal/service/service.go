@@ -3,6 +3,7 @@ package service
 import (
 	"bot/pkg/telegram"
 	"bot/pkg/ytdlp"
+	"log"
 	"time"
 )
 
@@ -64,9 +65,10 @@ func (s *Service) Run() error {
 			continue
 		}
 		for _, u := range response.Result {
-			lastUpdateId = u.Id
-			go s.handleUpdate(u)
+			lastUpdateId = u.Id + 1
+			if err := s.handleUpdate(u); err != nil {
+				log.Println(err)
+			}
 		}
-		lastUpdateId += 1
 	}
 }
