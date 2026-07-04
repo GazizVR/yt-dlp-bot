@@ -3,6 +3,7 @@ package service
 import (
 	"bot/pkg/telegram"
 	"bot/pkg/ytdlp"
+	"strings"
 	"time"
 )
 
@@ -31,10 +32,16 @@ func (s *Service) handleUpdate(
 			}
 		}
 		if update.Message.LinkPreview != nil {
+			var url string
+			if len(strings.TrimSpace(update.Message.LinkPreview.URL)) > 0 {
+				url = update.Message.LinkPreview.URL
+			} else {
+				url = update.Message.Text
+			}
 			if err := s.handleMsgWURL(
 				update.Message.Chat.Id,
 				update.Message.Id,
-				update.Message.LinkPreview.URL,
+				url,
 			); err != nil {
 				return err
 			}

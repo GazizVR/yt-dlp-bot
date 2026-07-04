@@ -37,12 +37,12 @@ func (c *Client) runBin(args ...string) (*string, error) {
 	}
 	args = append(c.baseArgs(), args...)
 	cmd := exec.Command(path, args...)
+	var stdErr bytes.Buffer
+	cmd.Stderr = &stdErr
 	out, err := cmd.Output()
 	if err != nil {
-		var stdErr bytes.Buffer
-		cmd.Stderr = &stdErr
 		log.Printf(
-			"Ошибка при работе программы: %s\nВывод: %s\n",
+			"Ошибка при работе программы: %s, %s",
 			err.Error(),
 			stdErr.String(),
 		)
