@@ -5,6 +5,7 @@ services:
       dockerfile: telegram-bot-server/Dockerfile
       args:
         - BUILD_JOBS=${BUILD_JOBS}
+    restart: always
     ports: ["${TELEGRAM_HTTP_PORT}:${TELEGRAM_HTTP_PORT}"]
     environment:
       - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
