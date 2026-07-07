@@ -2,6 +2,7 @@ package service
 
 import (
 	"bot/pkg/telegram"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -10,8 +11,12 @@ const (
 	StartText         = "🔗 Отправьте ссылку на видео"
 	WaitText          = "⏳ Подождите, загружается..."
 	DownloadAudioText = "​📥 Скачать аудио"
-	ErrorText         = "❌ Внутренняя ошибка, попробуйте снова"
-	TryAgainText      = "🔄 Еще раз"
+)
+
+const (
+	TryAgainText  = "🔄 Еще раз"
+	ErrInternal   = "❌ Внутренняя ошибка, попробуйте снова"
+	ErrUrlTooLong = "✂️ Ссылка слишком длинная!"
 )
 
 func (s *Service) handleStartCommand(
@@ -33,6 +38,15 @@ func (s *Service) handleMsgWURL(
 	messageId int64,
 	url string,
 ) error {
+	if len([]byte(url)) > 61 {
+		s.Tg.SendMessage(
+			chatId,
+			ErrUrlTooLong,
+			nil,
+			&messageId,
+		)
+		return errors.New(ErrUrlTooLong)
+	}
 	msg, err := s.Tg.SendMessage(
 		chatId,
 		WaitText,

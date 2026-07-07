@@ -22,7 +22,7 @@ func (s *Service) sendError(
 	)
 	s.Tg.SendMessage(
 		chatId,
-		ErrorText,
+		ErrInternal,
 		markup,
 		&msgToReply,
 	)
@@ -43,7 +43,7 @@ func (s *Service) editToError(
 	s.Tg.EditMessageText(
 		chatId,
 		messageId,
-		ErrorText,
+		ErrInternal,
 		markup,
 	)
 }
