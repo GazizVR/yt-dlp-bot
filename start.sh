@@ -1,3 +1,5 @@
 #!/bin/bash
-ENV_VARS=$(cat .env)
-sh -c "$ENV_VARS go run cmd/main.go"
+if [ -f .env ]; then
+    export $(cat .env | xargs)
+fi
+go run cmd/main.go
