@@ -1,10 +1,11 @@
 package service
 
 import (
-	"bot/pkg/telegram"
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
 )
 
 const (

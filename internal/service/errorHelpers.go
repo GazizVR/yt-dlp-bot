@@ -1,6 +1,6 @@
 package service
 
-import "bot/pkg/telegram"
+import "github.com/gazizvr/yt-dlp-bot/pkg/telegram"
 
 const (
 	sendAudio  = "sa"

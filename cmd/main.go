@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bot/internal/config"
-	"bot/internal/service"
-	"bot/pkg/telegram"
-	"bot/pkg/ytdlp"
 	"log"
+
+	"github.com/gazizvr/yt-dlp-bot/internal/config"
+	"github.com/gazizvr/yt-dlp-bot/internal/service"
+	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
+	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
 )
 
 func main() {

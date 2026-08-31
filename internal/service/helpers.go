@@ -1,9 +1,10 @@
 package service
 
 import (
-	"bot/pkg/telegram"
 	"fmt"
 	"os"
+
+	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
 )
 
 func (s *Service) sendMedia(

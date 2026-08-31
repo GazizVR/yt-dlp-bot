@@ -1,10 +1,11 @@
 package service
 
 import (
-	"bot/pkg/telegram"
-	"bot/pkg/ytdlp"
 	"strings"
 	"time"
+
+	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
+	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
 )
 
 type Service struct {
