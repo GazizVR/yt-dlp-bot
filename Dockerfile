@@ -1,4 +1,4 @@
-FROM golang:1.26.3
+FROM golang:1.26.5
 WORKDIR /app
 COPY cmd ./cmd
 COPY internal ./internal
