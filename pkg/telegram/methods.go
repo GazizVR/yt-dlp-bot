@@ -16,7 +16,7 @@ const (
 	answerQueryMethod     = "answerCallbackQuery"
 )
 
-func (c *Client) GetUpdates(
+func (c *Client) getUpdates(
 	offset int64,
 	limit uint8,
 	timeout uint8,
