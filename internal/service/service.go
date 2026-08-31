@@ -24,11 +24,11 @@ func NewService(
 
 func (s *Service) handleUpdate(
 	update telegram.Update,
-) error {
+) {
 	if update.Message != nil {
 		if update.Message.Text == "/start" {
 			if err := s.handleStartCommand(update.Message.Chat.Id); err != nil {
-				return err
+				return
 			}
 		}
 		if update.Message.LinkPreview != nil {
@@ -43,7 +43,7 @@ func (s *Service) handleUpdate(
 				update.Message.Id,
 				url,
 			); err != nil {
-				return err
+				return
 			}
 		}
 	}
@@ -51,10 +51,9 @@ func (s *Service) handleUpdate(
 		if err := s.handleCallbackQuery(
 			*update.Callback,
 		); err != nil {
-			return err
+			return
 		}
 	}
-	return nil
 }
 
 func (s *Service) Run() error {

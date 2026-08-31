@@ -22,7 +22,7 @@ func NewClient(
 }
 
 func (c *Client) ListenUpdates(
-	updateHandler func(Update) error,
+	updateHandler func(Update),
 	allowed []string,
 ) error {
 	var lastUpdateId int64
