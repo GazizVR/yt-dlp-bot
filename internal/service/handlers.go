@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
+	telegram "github.com/gazizvr/tg-bot-api/pkg"
 )
 
 const (

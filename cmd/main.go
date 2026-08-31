@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
+	telegram "github.com/gazizvr/tg-bot-api/pkg"
 	"github.com/gazizvr/yt-dlp-bot/internal/config"
 	"github.com/gazizvr/yt-dlp-bot/internal/service"
-	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
 	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
 )
 

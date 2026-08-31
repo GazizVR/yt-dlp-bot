@@ -3,7 +3,7 @@ package service
 import (
 	"strings"
 
-	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
+	telegram "github.com/gazizvr/tg-bot-api/pkg"
 	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
 )
 
