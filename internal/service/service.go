@@ -2,7 +2,6 @@ package service
 
 import (
 	"strings"
-	"time"
 
 	"github.com/gazizvr/yt-dlp-bot/pkg/telegram"
 	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
@@ -59,21 +58,11 @@ func (s *Service) handleUpdate(
 }
 
 func (s *Service) Run() error {
-	var lastUpdateId int64
-	for {
-		response, err := s.Tg.GetUpdates(
-			lastUpdateId,
-			100,
-			20,
-			[]string{"message", "callback_query"},
-		)
-		if err != nil {
-			time.Sleep(800 * time.Millisecond)
-			continue
-		}
-		for _, u := range response.Result {
-			lastUpdateId = u.Id + 1
-			go s.handleUpdate(u)
-		}
+	if err := s.Tg.ListenUpdates(
+		s.handleUpdate,
+		[]string{"message", "callback_query"},
+	); err != nil {
+		return err
 	}
+	return nil
 }

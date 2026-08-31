@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 )
 
 type Client struct {
@@ -23,8 +22,8 @@ func NewClient(
 }
 
 func (c *Client) ListenUpdates(
-	updateHandle func(Update),
-	allowedUpdates []string,
+	updateHandler func(Update) error,
+	allowed []string,
 ) error {
 	var lastUpdateId int64
 	for {
@@ -32,15 +31,14 @@ func (c *Client) ListenUpdates(
 			lastUpdateId,
 			100,
 			40,
-			allowedUpdates,
+			allowed,
 		)
 		if err != nil {
-			time.Sleep(800 * time.Millisecond)
-			continue
+			return err
 		}
 		for _, upd := range resp.Result {
 			lastUpdateId = upd.Id + 1
-			go updateHandle(upd)
+			go updateHandler(upd)
 		}
 	}
 }
