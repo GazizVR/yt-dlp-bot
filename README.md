@@ -30,7 +30,6 @@
 │   ├── config/          # Configuration loader
 │   └── service/         # Bot logic & handlers
 ├── pkg/
-│   ├── telegram/        # Telegram API client
 │   └── ytdlp/           # yt-dlp wrapper
 ├── Dockerfile
 ├── compose.yaml
