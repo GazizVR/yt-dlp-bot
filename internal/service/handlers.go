@@ -1,11 +1,12 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 
-	telegram "github.com/gazizvr/tg-bot-api/pkg"
+	telegrambot "github.com/gazizvr/go-telegram-bot"
 )
 
 const (
@@ -21,110 +22,134 @@ const (
 )
 
 func (s *Service) handleStartCommand(
-	chatId int64,
+	ctx context.Context,
+	chatID int64,
 ) error {
-	if _, err := s.Tg.SendMessage(
-		chatId,
-		StartText,
-		nil,
-		nil,
-	); err != nil {
+	params := telegrambot.SendMessageParams{
+		ChatID: chatID,
+		Text:   StartText,
+	}
+	if _, err := s.Tg.SendMessage(ctx, params); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *Service) handleMsgWURL(
-	chatId int64,
-	messageId int64,
+	ctx context.Context,
+	chatID int64,
+	messageID int64,
 	url string,
 ) error {
 	if len([]byte(url)) > 61 {
-		s.Tg.SendMessage(
-			chatId,
-			ErrUrlTooLong,
-			nil,
-			&messageId,
-		)
+		params := telegrambot.SendMessageParams{
+			ChatID: chatID,
+			Text:   ErrUrlTooLong,
+			ReplyParams: &telegrambot.ReplyParameters{
+				MessageID: &messageID,
+			},
+		}
+		s.Tg.SendMessage(ctx, params)
 		return errors.New(ErrUrlTooLong)
 	}
-	msg, err := s.Tg.SendMessage(
-		chatId,
-		WaitText,
-		nil,
-		&messageId,
-	)
+	params := telegrambot.SendMessageParams{
+		ChatID: chatID,
+		Text:   WaitText,
+		ReplyParams: &telegrambot.ReplyParameters{
+			MessageID: &messageID,
+		},
+	}
+	msg, err := s.Tg.SendMessage(ctx, params)
 	if err != nil {
 		s.sendError(
-			chatId,
-			messageId,
+			ctx,
+			chatID,
+			messageID,
 			fmt.Sprintf("%s-%s", againVideo, url),
 		)
 		return err
 	}
-	if err := s.sendMedia(
-		chatId,
-		msg.Result.Id,
-		true,
-		url,
-	); err != nil {
-		return err
-	}
-	return nil
+	return s.sendVideo(ctx, chatID, msg.ID, url)
 }
 
 func (s *Service) handleCallbackQuery(
-	callback telegram.CallbackQuery,
+	ctx context.Context,
+	callback telegrambot.CallbackQuery,
 ) error {
 	url := callback.Data[strings.Index(callback.Data, "-")+1:]
 	action := callback.Data[:strings.Index(callback.Data, "-")]
+	var message telegrambot.InaccessibleMessage
+	switch v := callback.Message.(type) {
+	case telegrambot.InaccessibleMessage:
+		message = v
+	case telegrambot.Message:
+		message.ID = v.ID
+		message.Chat = v.Chat
+	case nil:
+		return errors.New("message is nil")
+	default:
+		return errors.New("unsupported message type")
+	}
 	switch action {
 	case sendAudio:
-		markup := telegram.NewInlineMarkup([]telegram.InlineButton{})
+		markup := telegrambot.InlineKeyboardMarkup{
+			Keyboard: [][]telegrambot.InlineKeyboardButton{},
+		}
 		s.Tg.EditMessageReplyMarkup(
-			callback.Message.Chat.Id,
-			callback.Message.Id,
-			*markup,
+			ctx,
+			telegrambot.EditMessageReplyMarkupParams{
+				ChatID:      message.Chat.ID,
+				MessageID:   message.ID,
+				ReplyMarkup: &markup,
+			},
 		)
 		msg, _ := s.Tg.SendMessage(
-			callback.Message.Chat.Id,
-			WaitText,
-			nil,
-			&callback.Message.Id,
+			ctx,
+			telegrambot.SendMessageParams{
+				ChatID: message.Chat.ID,
+				Text:   WaitText,
+				ReplyParams: &telegrambot.ReplyParameters{
+					MessageID: &message.ID,
+				},
+			},
 		)
-		s.sendMedia(
-			msg.Result.Chat.Id,
-			msg.Result.Id,
-			false,
+		s.sendAudio(
+			ctx,
+			msg.Chat.ID,
+			msg.ID,
 			url,
 		)
 	case againVideo:
 		s.Tg.EditMessageText(
-			callback.Message.Chat.Id,
-			callback.Message.Id,
-			WaitText,
-			nil,
+			ctx,
+			telegrambot.EditMessageTextParams{
+				ChatID:    message.Chat.ID,
+				MessageID: message.ID,
+				Text:      WaitText,
+			},
 		)
-		s.sendMedia(
-			callback.Message.Chat.Id,
-			callback.Message.Id,
-			true,
+		s.sendVideo(
+			ctx,
+			message.Chat.ID,
+			message.ID,
 			url,
 		)
 	case againAudio:
 		s.Tg.EditMessageText(
-			callback.Message.Chat.Id,
-			callback.Message.Id,
-			WaitText,
-			nil,
+			ctx,
+			telegrambot.EditMessageTextParams{
+				ChatID:    message.Chat.ID,
+				MessageID: message.ID,
+				Text:      WaitText,
+			},
 		)
-		s.sendMedia(
-			callback.Message.Chat.Id,
-			callback.Message.Id,
-			false,
+		s.sendAudio(
+			ctx,
+			message.Chat.ID,
+			message.ID,
 			url,
 		)
 	}
-	s.Tg.AnswerCallbackQuery(callback.Id)
+	s.Tg.AnswerCallbackQuery(ctx, telegrambot.AnswerCallbackQueryParams{CallbackQueryID: callback.ID})
 	return nil
 }

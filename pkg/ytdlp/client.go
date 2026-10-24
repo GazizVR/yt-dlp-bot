@@ -1,8 +1,6 @@
 package ytdlp
 
 import (
-	"log"
-	"os"
 	"strings"
 )
 
@@ -30,7 +28,7 @@ func NewClient(
 func (c *Client) DownloadVideo(
 	outputPath string,
 	mediaURL string,
-) (*os.File, error) {
+) (*string, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
 		"--remux-video", "mp4",
@@ -40,18 +38,13 @@ func (c *Client) DownloadVideo(
 		return nil, err
 	}
 	newPath := strings.ReplaceAll(*path, "\n", "")
-	file, err := os.Open(newPath)
-	if err != nil {
-		log.Printf("Ошибка открытия %q: %v", newPath, err)
-		return nil, err
-	}
-	return file, nil
+	return &newPath, nil
 }
 
 func (c *Client) DownloadAudio(
 	outputPath string,
 	mediaURL string,
-) (*os.File, error) {
+) (*string, error) {
 	path, err := c.runBin(
 		"-P", outputPath,
 		"-x",
@@ -62,10 +55,5 @@ func (c *Client) DownloadAudio(
 		return nil, err
 	}
 	newPath := strings.ReplaceAll(*path, "\n", "")
-	file, err := os.Open(newPath)
-	if err != nil {
-		log.Printf("Ошибка открытия %q: %v", newPath, err)
-		return nil, err
-	}
-	return file, nil
+	return &newPath, nil
 }

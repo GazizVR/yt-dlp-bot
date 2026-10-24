@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	telegram "github.com/gazizvr/tg-bot-api/pkg"
+	telegrambot "github.com/gazizvr/go-telegram-bot"
 	"github.com/gazizvr/yt-dlp-bot/internal/config"
 	"github.com/gazizvr/yt-dlp-bot/internal/service"
 	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
@@ -11,16 +11,21 @@ import (
 
 func main() {
 	cfg := config.Load()
-	telegram := telegram.NewClient(cfg.TelegramToken, cfg.TelegramApiBaseURL)
+	bot, err := telegrambot.NewBot(
+		cfg.TelegramToken,
+		telegrambot.WithBaseURL(cfg.TelegramApiBaseURL),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 	ytdlp := ytdlp.NewClient(
 		cfg.YtDlpBinPath,
 		cfg.CookiesPath,
 		cfg.JsRuntime,
 		cfg.Browser,
 	)
-	service := service.NewService(telegram, ytdlp)
-	log.Println("Сервер запускается")
+	service := service.NewService(bot, ytdlp)
 	if err := service.Run(); err != nil {
-		log.Fatalln("Ошибка запуска обработчика ошибок")
+		log.Fatal(err)
 	}
 }

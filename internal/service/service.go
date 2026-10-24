@@ -1,19 +1,21 @@
 package service
 
 import (
+	"context"
+	"log/slog"
 	"strings"
 
-	telegram "github.com/gazizvr/tg-bot-api/pkg"
+	telegrambot "github.com/gazizvr/go-telegram-bot"
 	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
 )
 
 type Service struct {
-	Tg  *telegram.Client
+	Tg  *telegrambot.Bot
 	Dlp *ytdlp.Client
 }
 
 func NewService(
-	tg *telegram.Client,
+	tg *telegrambot.Bot,
 	dlp *ytdlp.Client,
 ) *Service {
 	return &Service{
@@ -23,45 +25,64 @@ func NewService(
 }
 
 func (s *Service) handleUpdate(
-	update telegram.Update,
-) {
+	ctx context.Context,
+	update telegrambot.Update,
+) error {
 	if update.Message != nil {
 		if update.Message.Text == "/start" {
-			if err := s.handleStartCommand(update.Message.Chat.Id); err != nil {
-				return
+			if err := s.handleStartCommand(ctx, update.Message.Chat.ID); err != nil {
+				return err
 			}
 		}
-		if update.Message.LinkPreview != nil {
+		if update.Message.LinkPreviewOptions != nil {
 			var url string
-			if len(strings.TrimSpace(update.Message.LinkPreview.URL)) > 0 {
-				url = update.Message.LinkPreview.URL
+			if len(strings.TrimSpace(update.Message.LinkPreviewOptions.URL)) > 0 {
+				url = update.Message.LinkPreviewOptions.URL
 			} else {
 				url = update.Message.Text
 			}
 			if err := s.handleMsgWURL(
-				update.Message.Chat.Id,
-				update.Message.Id,
+				ctx,
+				update.Message.Chat.ID,
+				update.Message.ID,
 				url,
 			); err != nil {
-				return
+				return err
 			}
 		}
 	}
-	if update.Callback != nil {
+	if update.CallbackQuery != nil {
 		if err := s.handleCallbackQuery(
-			*update.Callback,
+			ctx,
+			*update.CallbackQuery,
 		); err != nil {
-			return
+			return err
 		}
 	}
+	return nil
 }
 
 func (s *Service) Run() error {
-	if err := s.Tg.ListenUpdates(
-		s.handleUpdate,
-		[]string{"message", "callback_query"},
-	); err != nil {
-		return err
+	var lastUpdateID int64
+	ctx := context.Background()
+	for {
+		params := telegrambot.GetUpdatesParams{
+			Offset:         lastUpdateID + 1,
+			Limit:          100,
+			Timeout:        45,
+			AllowedUpdates: []string{"message", "callback_query"},
+		}
+		updates, err := s.Tg.GetUpdates(ctx, params)
+		if err != nil {
+			return err
+		}
+		for _, u := range updates {
+			lastUpdateID = u.ID
+			go func() {
+				if err := s.handleUpdate(ctx, u); err != nil {
+					slog.ErrorContext(ctx, err.Error())
+				}
+			}()
+		}
 	}
-	return nil
 }

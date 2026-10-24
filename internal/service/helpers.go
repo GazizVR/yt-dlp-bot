@@ -1,66 +1,95 @@
 package service
 
 import (
+	"context"
 	"fmt"
-	"os"
 
-	telegram "github.com/gazizvr/tg-bot-api/pkg"
+	telegrambot "github.com/gazizvr/go-telegram-bot"
 )
 
-func (s *Service) sendMedia(
+func (s *Service) sendVideo(
+	ctx context.Context,
 	chatId int64,
 	messageId int64,
-	isVideo bool,
 	url string,
 ) error {
-	var (
-		mediaFile     *os.File
-		err           error
-		markup        *telegram.InlineMarkup
-		formFieldName string
-		errText       string
-	)
-	if isVideo {
-		errText = againVideo
-		formFieldName = "video"
-		mediaFile, err = s.Dlp.DownloadVideo(
-			"tmp",
-			url,
-		)
-		button := &telegram.InlineButton{
-			Text: DownloadAudioText,
-			Data: fmt.Sprintf("%s-%s", sendAudio, url),
-		}
-		markup = telegram.NewInlineMarkup(
-			[]telegram.InlineButton{*button},
-		)
-	} else {
-		errText = againAudio
-		formFieldName = "audio"
-		mediaFile, err = s.Dlp.DownloadAudio(
-			"tmp",
-			url,
-		)
-		markup = nil
-	}
-
+	errText := againVideo
+	mediaFilePath, err := s.Dlp.DownloadVideo("tmp", url)
 	if err != nil {
 		s.editToError(
+			ctx,
 			chatId,
 			messageId,
 			fmt.Sprintf("%s-%s", errText, url),
 		)
 		return err
 	}
-	_, err = s.Tg.EditMessageMedia(
-		chatId,
-		messageId,
-		formFieldName,
-		*mediaFile,
-		markup,
-	)
+	inputMedia := telegrambot.InputMedia{
+		Media: telegrambot.LocalSource{
+			Filepath: *mediaFilePath,
+		},
+		Type: telegrambot.MediaTypeVideo,
+	}
+	button := &telegrambot.InlineKeyboardButton{
+		Text:         DownloadAudioText,
+		CallbackData: fmt.Sprintf("%s-%s", sendAudio, url),
+	}
+	markup := &telegrambot.InlineKeyboardMarkup{
+		Keyboard: [][]telegrambot.InlineKeyboardButton{{*button}},
+	}
+	if _, err := s.Tg.EditMessageMedia(
+		ctx,
+		telegrambot.EditMessageMediaParams{
+			ChatID:      chatId,
+			MessageID:   messageId,
+			Media:       inputMedia,
+			ReplyMarkup: markup,
+		},
+	); err != nil {
+		s.editToError(
+			ctx,
+			chatId,
+			messageId,
+			fmt.Sprintf("%s-%s", errText, url),
+		)
+		return err
+	}
+	return nil
+}
+
+func (s *Service) sendAudio(
+	ctx context.Context,
+	chatId int64,
+	messageId int64,
+	url string,
+) error {
+	errText := againAudio
+	mediaFilePath, err := s.Dlp.DownloadAudio("tmp", url)
 	if err != nil {
 		s.editToError(
+			ctx,
+			chatId,
+			messageId,
+			fmt.Sprintf("%s-%s", errText, url),
+		)
+		return err
+	}
+	inputMedia := telegrambot.InputMedia{
+		Media: telegrambot.LocalSource{
+			Filepath: *mediaFilePath,
+		},
+		Type: telegrambot.MediaTypeAudio,
+	}
+	if _, err := s.Tg.EditMessageMedia(
+		ctx,
+		telegrambot.EditMessageMediaParams{
+			ChatID:    chatId,
+			MessageID: messageId,
+			Media:     inputMedia,
+		},
+	); err != nil {
+		s.editToError(
+			ctx,
 			chatId,
 			messageId,
 			fmt.Sprintf("%s-%s", errText, url),

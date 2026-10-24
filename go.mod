@@ -1,5 +1,5 @@
 module github.com/gazizvr/yt-dlp-bot
 
-go 1.26.5
+go 1.27.1
 
-require github.com/gazizvr/tg-bot-api v0.0.0-20260831145138-386e8b94efb4
+require github.com/gazizvr/go-telegram-bot v0.0.0-20261025120358-2857e2505928
