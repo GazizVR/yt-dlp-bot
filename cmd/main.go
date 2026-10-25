@@ -12,8 +12,8 @@ import (
 func main() {
 	cfg := config.Load()
 	bot, err := telegrambot.NewBot(
-		cfg.TelegramToken,
-		telegrambot.WithBaseURL(cfg.TelegramApiBaseURL),
+		cfg.BotToken,
+		telegrambot.WithBaseURL(cfg.BotAPIBaseURL),
 	)
 	if err != nil {
 		log.Fatal(err)

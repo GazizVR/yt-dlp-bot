@@ -10,17 +10,17 @@ import (
 )
 
 type Service struct {
-	Tg  *telegrambot.Bot
-	Dlp *ytdlp.Client
+	bot        *telegrambot.Bot
+	downloader *ytdlp.Client
 }
 
 func NewService(
-	tg *telegrambot.Bot,
-	dlp *ytdlp.Client,
+	bot *telegrambot.Bot,
+	downloader *ytdlp.Client,
 ) *Service {
 	return &Service{
-		Tg:  tg,
-		Dlp: dlp,
+		bot:        bot,
+		downloader: downloader,
 	}
 }
 
@@ -72,7 +72,7 @@ func (s *Service) Run() error {
 			Timeout:        45,
 			AllowedUpdates: []string{"message", "callback_query"},
 		}
-		updates, err := s.Tg.GetUpdates(ctx, params)
+		updates, err := s.bot.GetUpdates(ctx, params)
 		if err != nil {
 			return err
 		}

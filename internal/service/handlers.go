@@ -29,7 +29,7 @@ func (s *Service) handleStartCommand(
 		ChatID: chatID,
 		Text:   StartText,
 	}
-	if _, err := s.Tg.SendMessage(ctx, params); err != nil {
+	if _, err := s.bot.SendMessage(ctx, params); err != nil {
 		return err
 	}
 	return nil
@@ -49,7 +49,7 @@ func (s *Service) handleMsgWURL(
 				MessageID: &messageID,
 			},
 		}
-		s.Tg.SendMessage(ctx, params)
+		s.bot.SendMessage(ctx, params)
 		return errors.New(ErrUrlTooLong)
 	}
 	params := telegrambot.SendMessageParams{
@@ -59,7 +59,7 @@ func (s *Service) handleMsgWURL(
 			MessageID: &messageID,
 		},
 	}
-	msg, err := s.Tg.SendMessage(ctx, params)
+	msg, err := s.bot.SendMessage(ctx, params)
 	if err != nil {
 		s.sendError(
 			ctx,
@@ -95,7 +95,7 @@ func (s *Service) handleCallbackQuery(
 		markup := telegrambot.InlineKeyboardMarkup{
 			Keyboard: [][]telegrambot.InlineKeyboardButton{},
 		}
-		s.Tg.EditMessageReplyMarkup(
+		s.bot.EditMessageReplyMarkup(
 			ctx,
 			telegrambot.EditMessageReplyMarkupParams{
 				ChatID:      message.Chat.ID,
@@ -103,7 +103,7 @@ func (s *Service) handleCallbackQuery(
 				ReplyMarkup: &markup,
 			},
 		)
-		msg, _ := s.Tg.SendMessage(
+		msg, _ := s.bot.SendMessage(
 			ctx,
 			telegrambot.SendMessageParams{
 				ChatID: message.Chat.ID,
@@ -120,7 +120,7 @@ func (s *Service) handleCallbackQuery(
 			url,
 		)
 	case againVideo:
-		s.Tg.EditMessageText(
+		s.bot.EditMessageText(
 			ctx,
 			telegrambot.EditMessageTextParams{
 				ChatID:    message.Chat.ID,
@@ -135,7 +135,7 @@ func (s *Service) handleCallbackQuery(
 			url,
 		)
 	case againAudio:
-		s.Tg.EditMessageText(
+		s.bot.EditMessageText(
 			ctx,
 			telegrambot.EditMessageTextParams{
 				ChatID:    message.Chat.ID,
@@ -150,6 +150,6 @@ func (s *Service) handleCallbackQuery(
 			url,
 		)
 	}
-	s.Tg.AnswerCallbackQuery(ctx, telegrambot.AnswerCallbackQueryParams{CallbackQueryID: callback.ID})
+	s.bot.AnswerCallbackQuery(ctx, telegrambot.AnswerCallbackQueryParams{CallbackQueryID: callback.ID})
 	return nil
 }

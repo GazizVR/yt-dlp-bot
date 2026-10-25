@@ -32,7 +32,7 @@ func (s *Service) sendError(
 			Keyboard: [][]telegrambot.InlineKeyboardButton{{*button}},
 		},
 	}
-	s.Tg.SendMessage(ctx, params)
+	s.bot.SendMessage(ctx, params)
 }
 
 func (s *Service) editToError(
@@ -54,5 +54,5 @@ func (s *Service) editToError(
 		Text:        ErrInternal,
 		ReplyMarkup: &markup,
 	}
-	s.Tg.EditMessageText(ctx, params)
+	s.bot.EditMessageText(ctx, params)
 }

@@ -14,7 +14,7 @@ func (s *Service) sendVideo(
 	url string,
 ) error {
 	errText := againVideo
-	mediaFilePath, err := s.Dlp.DownloadVideo("tmp", url)
+	mediaFilePath, err := s.downloader.DownloadVideo("tmp", url)
 	if err != nil {
 		s.editToError(
 			ctx,
@@ -37,7 +37,7 @@ func (s *Service) sendVideo(
 	markup := &telegrambot.InlineKeyboardMarkup{
 		Keyboard: [][]telegrambot.InlineKeyboardButton{{*button}},
 	}
-	if _, err := s.Tg.EditMessageMedia(
+	if _, err := s.bot.EditMessageMedia(
 		ctx,
 		telegrambot.EditMessageMediaParams{
 			ChatID:      chatId,
@@ -64,7 +64,7 @@ func (s *Service) sendAudio(
 	url string,
 ) error {
 	errText := againAudio
-	mediaFilePath, err := s.Dlp.DownloadAudio("tmp", url)
+	mediaFilePath, err := s.downloader.DownloadAudio("tmp", url)
 	if err != nil {
 		s.editToError(
 			ctx,
@@ -80,7 +80,7 @@ func (s *Service) sendAudio(
 		},
 		Type: telegrambot.MediaTypeAudio,
 	}
-	if _, err := s.Tg.EditMessageMedia(
+	if _, err := s.bot.EditMessageMedia(
 		ctx,
 		telegrambot.EditMessageMediaParams{
 			ChatID:    chatId,
