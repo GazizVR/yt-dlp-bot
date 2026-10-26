@@ -11,7 +11,7 @@ services:
       - telegram-bot-data:/var/lib/telegram-bot-api
     ports:
       - "${TELEGRAM_HTTP_PORT}:${TELEGRAM_HTTP_PORT}"
-  app:
+  bot:
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,6 +22,6 @@ services:
       - BOT_TOKEN=${BOT_TOKEN}
       - BOT_API_BASE_URL=http://telegram-bot-api:${TELEGRAM_HTTP_PORT}
       - BOT_FILES_DIR=/var/lib/telegram-bot-api/${BOT_TOKEN}
-      - JS_RUNTIME=node
+      - JS_RUNTIME=quickjs
 volumes:
   telegram-bot-data:
