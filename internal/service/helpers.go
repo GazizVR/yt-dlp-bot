@@ -25,7 +25,7 @@ func (s *Service) sendVideo(
 		return err
 	}
 	inputMedia := telegrambot.InputMedia{
-		Media: telegrambot.LocalSource{
+		Media: &telegrambot.LocalSource{
 			Filepath: *mediaFilePath,
 		},
 		Type: telegrambot.MediaTypeVideo,
@@ -75,7 +75,7 @@ func (s *Service) sendAudio(
 		return err
 	}
 	inputMedia := telegrambot.InputMedia{
-		Media: telegrambot.LocalSource{
+		Media: &telegrambot.LocalSource{
 			Filepath: *mediaFilePath,
 		},
 		Type: telegrambot.MediaTypeAudio,

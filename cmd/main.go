@@ -14,13 +14,14 @@ func main() {
 	bot, err := telegrambot.NewBot(
 		cfg.BotToken,
 		telegrambot.WithBaseURL(cfg.BotAPIBaseURL),
+		telegrambot.WithFilesDir(cfg.BotFilesDir),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 	ytdlp := ytdlp.NewClient(
-		cfg.YtDlpBinPath,
-		cfg.CookiesPath,
+		cfg.YtDlpBin,
+		cfg.Cookies,
 		cfg.JsRuntime,
 		cfg.Browser,
 	)

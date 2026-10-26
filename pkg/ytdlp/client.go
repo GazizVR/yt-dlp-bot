@@ -5,10 +5,10 @@ import (
 )
 
 type Client struct {
-	BinPath     string
-	CookiesPath string
-	JsRuntime   string
-	Browser     string
+	bin       string
+	cookies   string
+	jsRuntime string
+	browser   string
 }
 
 func NewClient(
@@ -18,10 +18,10 @@ func NewClient(
 	browser string,
 ) *Client {
 	return &Client{
-		BinPath:     binPath,
-		CookiesPath: cookiesPath,
-		JsRuntime:   jsRuntime,
-		Browser:     browser,
+		bin:       binPath,
+		cookies:   cookiesPath,
+		jsRuntime: jsRuntime,
+		browser:   browser,
 	}
 }
 

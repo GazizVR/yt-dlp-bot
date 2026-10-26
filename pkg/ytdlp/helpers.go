@@ -14,23 +14,23 @@ func (c *Client) baseArgs() []string {
 		"--no-warnings",
 		"--print", "after_move:filepath",
 	}
-	if len(c.CookiesPath) > 0 {
+	if len(c.cookies) > 0 {
 		args = append(args, "--cookies")
-		args = append(args, c.CookiesPath)
+		args = append(args, c.cookies)
 	}
-	if len(c.JsRuntime) > 0 {
+	if len(c.jsRuntime) > 0 {
 		args = append(args, "--js-runtime")
-		args = append(args, c.JsRuntime)
+		args = append(args, c.jsRuntime)
 	}
-	if len(c.Browser) > 0 {
+	if len(c.browser) > 0 {
 		args = append(args, "--cookies-from-browser")
-		args = append(args, c.Browser)
+		args = append(args, c.browser)
 	}
 	return args
 }
 
 func (c *Client) runBin(args ...string) (*string, error) {
-	path, err := exec.LookPath(c.BinPath)
+	path, err := exec.LookPath(c.bin)
 	if err != nil {
 		log.Println("Бинарник yt-dlp не найден: ", err)
 		return nil, err
