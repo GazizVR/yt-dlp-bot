@@ -6,54 +6,72 @@ import (
 
 type Client struct {
 	bin       string
+    ffmpegBin string
+    jsRuntime string
 	cookies   string
-	jsRuntime string
 	browser   string
 }
 
+type Option func(*Client) error
+
+func WithCookies(cookies string) Option {
+    return func(c *Client) error {
+        c.cookies = cookies
+        return nil
+    }
+}
+
+func WithBrowser(browser string) Option {
+    return func(c *Client) error {
+        c.browser = browser
+        return nil
+    }
+}
+
 func NewClient(
-	binPath string,
-	cookiesPath string,
+	bin string,
+    ffmpegBin string,
 	jsRuntime string,
-	browser string,
-) *Client {
-	return &Client{
-		bin:       binPath,
-		cookies:   cookiesPath,
+    opts ...Option,
+) (*Client,error) {
+    client := &Client{
+		bin:       bin,
+		ffmpegBin:   ffmpegBin,
 		jsRuntime: jsRuntime,
-		browser:   browser,
 	}
+    for _, opt := range opts {
+        if err := opt(client); err != nil {
+            return nil, err
+        }
+    }
+	return client, nil
 }
 
-func (c *Client) DownloadVideo(
-	outputPath string,
-	mediaURL string,
-) (*string, error) {
-	path, err := c.runBin(
-		"-P", outputPath,
-		"--remux-video", "mp4",
-		mediaURL,
-	)
+func (c *Client) DownloadVideo(url, outputDir string) (string, error) {
+    args := c.baseArgs()
+    args = append(
+        args,
+        []string{
+            url,
+            "-P", outputDir,
+		    "--remux-video", "mp4",
+        }...,
+    )
+	path, err := runBin(c.bin,args...)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	newPath := strings.ReplaceAll(*path, "\n", "")
-	return &newPath, nil
+	newPath := strings.ReplaceAll(path, "\n", "")
+	return newPath, nil
 }
 
-func (c *Client) DownloadAudio(
-	outputPath string,
-	mediaURL string,
-) (*string, error) {
-	path, err := c.runBin(
-		"-P", outputPath,
-		"-x",
-		"--audio-format", "mp3",
-		mediaURL,
-	)
-	if err != nil {
-		return nil, err
-	}
-	newPath := strings.ReplaceAll(*path, "\n", "")
-	return &newPath, nil
+func (c *Client) VideoToAudio(videoPath string) (string,error) {
+    out, err := runBin(
+        c.ffmpegBin,
+        "-i", videoPath,
+    )
+    if err != nil {
+        return "", err
+    }
+    return out, nil
 }

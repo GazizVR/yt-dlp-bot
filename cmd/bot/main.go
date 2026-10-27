@@ -19,13 +19,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ytdlp := ytdlp.NewClient(
+	ytdlp, err := ytdlp.NewClient(
 		cfg.YtDlpBin,
-		cfg.Cookies,
+		cfg.FfmpegBin,
 		cfg.JsRuntime,
-		cfg.Browser,
+		ytdlp.WithBrowser(cfg.Browser),
+        ytdlp.WithCookies(cfg.Cookies),
 	)
-	service := service.NewService(bot, ytdlp)
+    if err != nil {
+        log.Fatal(err)
+    }
+	service := service.NewService(bot, ytdlp,ytdlp)
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}

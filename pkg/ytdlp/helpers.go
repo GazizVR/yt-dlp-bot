@@ -2,7 +2,7 @@ package ytdlp
 
 import (
 	"bytes"
-	"log"
+	"fmt"
 	"os/exec"
 )
 
@@ -29,25 +29,17 @@ func (c *Client) baseArgs() []string {
 	return args
 }
 
-func (c *Client) runBin(args ...string) (*string, error) {
-	path, err := exec.LookPath(c.bin)
+func runBin(bin string, args ...string) (string, error) {
+	path, err := exec.LookPath(bin)
 	if err != nil {
-		log.Println("Бинарник yt-dlp не найден: ", err)
-		return nil, err
+		return "", err
 	}
-	args = append(c.baseArgs(), args...)
 	cmd := exec.Command(path, args...)
 	var stdErr bytes.Buffer
 	cmd.Stderr = &stdErr
 	out, err := cmd.Output()
 	if err != nil {
-		log.Printf(
-			"Ошибка при работе программы: %s, %s",
-			err.Error(),
-			stdErr.String(),
-		)
-		return nil, err
-	}
-	filePath := string(out)
-	return &filePath, nil
+		return "", fmt.Errorf("err: %w, stdErr: %s",err,stdErr.String())
+    }
+	return string(out), nil
 }

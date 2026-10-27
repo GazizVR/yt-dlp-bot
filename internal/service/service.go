@@ -6,21 +6,31 @@ import (
 	"strings"
 
 	telegrambot "github.com/gazizvr/go-telegram-bot"
-	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
 )
+
+type Downloader interface {
+    DownloadVideo(url, outputDir string) (string,error)
+}
+
+type Converter interface {
+    VideoToAudio(videoPath string) (string,error)
+}
 
 type Service struct {
 	bot        *telegrambot.Bot
-	downloader *ytdlp.Client
+	downloader Downloader
+    converter Converter
 }
 
 func NewService(
 	bot *telegrambot.Bot,
-	downloader *ytdlp.Client,
+	downloader Downloader,
+    converter Converter,
 ) *Service {
 	return &Service{
 		bot:        bot,
 		downloader: downloader,
+        converter: converter,
 	}
 }
 
@@ -53,8 +63,7 @@ func (s *Service) handleUpdate(
 	}
 	if update.CallbackQuery != nil {
 		if err := s.handleCallbackQuery(
-			ctx,
-			*update.CallbackQuery,
+			ctx, *update.CallbackQuery,
 		); err != nil {
 			return err
 		}

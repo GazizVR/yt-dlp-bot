@@ -2,25 +2,21 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	telegrambot "github.com/gazizvr/go-telegram-bot"
-)
-
-const (
-	sendAudio  = "sa"
-	againVideo = "av"
-	againAudio = "aa"
 )
 
 func (s *Service) sendError(
 	ctx context.Context,
 	chatId int64,
 	msgToReply int64,
-	callbackData string,
+    action string,
+	data string,
 ) {
 	button := &telegrambot.InlineKeyboardButton{
 		Text:         TryAgainText,
-		CallbackData: callbackData,
+		CallbackData: fmt.Sprintf("%s-%s",action,data),
 	}
 	params := telegrambot.SendMessageParams{
 		ChatID: chatId,
@@ -39,11 +35,12 @@ func (s *Service) editToError(
 	ctx context.Context,
 	chatId int64,
 	messageId int64,
-	callbackData string,
+    action string,
+	data string,
 ) {
 	button := &telegrambot.InlineKeyboardButton{
 		Text:         TryAgainText,
-		CallbackData: callbackData,
+		CallbackData: fmt.Sprintf("%s-%s",action,data),
 	}
 	markup := telegrambot.InlineKeyboardMarkup{
 		Keyboard: [][]telegrambot.InlineKeyboardButton{{*button}},
