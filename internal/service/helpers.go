@@ -7,15 +7,15 @@ import (
 	telegrambot "github.com/gazizvr/go-telegram-bot"
 )
 
-func (s *Service) sendVideo(
+func (s *Service) editToVideo(
 	ctx context.Context,
 	chatID int64,
 	messageID int64,
 	url string,
 ) error {
-	mediaPath, err := s.downloader.DownloadVideo(url,"tmp")
+	mediaPath, err := s.downloader.DownloadVideo(url, "tmp")
 	if err != nil {
-		s.editToError(ctx,chatID,messageID,againVideo, url)
+		s.editToError(ctx, chatID, messageID, againVideo, url)
 		return err
 	}
 	inputMedia := telegrambot.InputMedia{
@@ -40,50 +40,21 @@ func (s *Service) sendVideo(
 			ReplyMarkup: markup,
 		},
 	); err != nil {
-		s.editToError(ctx,chatID,messageID,againVideo, url)
+		s.editToError(ctx, chatID, messageID, againVideo, url)
 		return err
 	}
 	return nil
 }
 
-func (s *Service) sendAudio(
+func (s *Service) editToAudio(
 	ctx context.Context,
 	chatID int64,
 	messageID int64,
 	mediaPath string,
 ) error {
-    markup := telegrambot.InlineKeyboardMarkup{
-		Keyboard: [][]telegrambot.InlineKeyboardButton{},
-	}
-	msg, err := s.bot.EditMessageReplyMarkup(
-		ctx,
-		telegrambot.EditMessageReplyMarkupParams{
-			ChatID:      chatID,
-			MessageID:   messageID,
-			ReplyMarkup: &markup,
-		},
-	)
-    if err != nil {
-        s.editToError(ctx,chatID,messageID,sendAudio,mediaPath)
-        return err
-    }
-	msg, err = s.bot.SendMessage(
-		ctx,
-		telegrambot.SendMessageParams{
-			ChatID: msg.Chat.ID,
-			Text:   WaitText,
-			ReplyParams: &telegrambot.ReplyParameters{
-				MessageID: &msg.ID,
-			},
-		},
-	)
-    if err != nil {
-        s.editToError(ctx,chatID,messageID,sendAudio, mediaPath)
-        return err
-    }
 	audioPath, err := s.converter.VideoToAudio(mediaPath)
 	if err != nil {
-		s.editToError(ctx,chatID,messageID,sendAudio, mediaPath)
+		s.editToError(ctx, chatID, messageID, againAudio, mediaPath)
 		return err
 	}
 	inputMedia := telegrambot.InputMedia{
@@ -100,7 +71,7 @@ func (s *Service) sendAudio(
 			Media:     inputMedia,
 		},
 	); err != nil {
-		s.editToError(ctx,chatID,messageID,sendAudio, mediaPath)
+		s.editToError(ctx, chatID, messageID, againAudio, mediaPath)
 		return err
 	}
 	return nil

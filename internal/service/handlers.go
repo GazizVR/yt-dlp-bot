@@ -34,8 +34,13 @@ func (s *Service) handleStartCommand(
 	return nil
 }
 
-const sendAudio  = "sa"
-const againVideo = "av"
+type callbackAction string
+
+const (
+	againVideo callbackAction = "av"
+	sendAudio  callbackAction = "sa"
+	againAudio callbackAction = "aa"
+)
 
 func (s *Service) handleMsgWURL(
 	ctx context.Context,
@@ -63,10 +68,10 @@ func (s *Service) handleMsgWURL(
 	}
 	msg, err := s.bot.SendMessage(ctx, params)
 	if err != nil {
-		s.sendError(ctx,chatID,messageID,againVideo, url)
+		s.sendError(ctx, chatID, messageID, againVideo, url)
 		return err
 	}
-	return s.sendVideo(ctx, chatID, msg.ID, url)
+	return s.editToVideo(ctx, chatID, msg.ID, url)
 }
 
 func (s *Service) handleCallbackQuery(
@@ -74,7 +79,7 @@ func (s *Service) handleCallbackQuery(
 	callback telegrambot.CallbackQuery,
 ) error {
 	data := callback.Data[strings.Index(callback.Data, "-")+1:]
-	action := callback.Data[:strings.Index(callback.Data, "-")]
+	action := callbackAction(callback.Data[:strings.Index(callback.Data, "-")])
 	var message telegrambot.InaccessibleMessage
 	switch v := callback.Message.(type) {
 	case telegrambot.InaccessibleMessage:
@@ -88,26 +93,71 @@ func (s *Service) handleCallbackQuery(
 		return errors.New("unsupported message type")
 	}
 	switch action {
-	case sendAudio:
-		if err := s.sendAudio(ctx,message.Chat.ID,message.ID,data); err != nil {
-            return err
-        }
 	case againVideo:
-        msg, err := s.bot.EditMessageText(
-		    ctx,
-		    telegrambot.EditMessageTextParams{
-			    ChatID:    message.Chat.ID,
-			    MessageID: message.ID,
-			    Text:      WaitText,
-		    },
-	    )
-        if err != nil {
-            s.editToError(ctx,message.Chat.ID,message.ID,againVideo, data)
-            return err
-        }
-		if err := s.sendVideo(ctx,msg.Chat.ID,msg.ID,data); err != nil {
-            return err
-        }
+		msg, err := s.bot.EditMessageText(
+			ctx,
+			telegrambot.EditMessageTextParams{
+				ChatID:    message.Chat.ID,
+				MessageID: message.ID,
+				Text:      WaitText,
+			},
+		)
+		if err != nil {
+			s.editToError(ctx, message.Chat.ID, message.ID, againVideo, data)
+			return err
+		}
+		if err := s.editToVideo(ctx, msg.Chat.ID, msg.ID, data); err != nil {
+			return err
+		}
+	case sendAudio:
+		markup := telegrambot.InlineKeyboardMarkup{
+			Keyboard: [][]telegrambot.InlineKeyboardButton{},
+		}
+		msg, err := s.bot.EditMessageReplyMarkup(
+			ctx,
+			telegrambot.EditMessageReplyMarkupParams{
+				ChatID:      message.Chat.ID,
+				MessageID:   message.ID,
+				ReplyMarkup: &markup,
+			},
+		)
+		if err != nil {
+			s.editToError(ctx, message.Chat.ID, message.ID, sendAudio, data)
+			return err
+		}
+		msg, err = s.bot.SendMessage(
+			ctx,
+			telegrambot.SendMessageParams{
+				ChatID: msg.Chat.ID,
+				Text:   WaitText,
+				ReplyParams: &telegrambot.ReplyParameters{
+					MessageID: &msg.ID,
+				},
+			},
+		)
+		if err != nil {
+			s.editToError(ctx, msg.Chat.ID, msg.ID, againAudio, data)
+			return err
+		}
+		if err := s.editToAudio(ctx, msg.Chat.ID, msg.ID, data); err != nil {
+			return err
+		}
+	case againAudio:
+		msg, err := s.bot.EditMessageText(
+			ctx,
+			telegrambot.EditMessageTextParams{
+				ChatID:    message.Chat.ID,
+				MessageID: message.ID,
+				Text:      WaitText,
+			},
+		)
+		if err != nil {
+			s.editToError(ctx, message.Chat.ID, message.ID, againAudio, data)
+			return err
+		}
+		if err := s.editToAudio(ctx, msg.Chat.ID, msg.ID, data); err != nil {
+			return err
+		}
 	}
 	s.bot.AnswerCallbackQuery(ctx, telegrambot.AnswerCallbackQueryParams{CallbackQueryID: callback.ID})
 	return nil

@@ -1,13 +1,14 @@
 package ytdlp
 
 import (
+	"path/filepath"
 	"strings"
 )
 
 type Client struct {
 	bin       string
-    ffmpegBin string
-    jsRuntime string
+	ffmpegBin string
+	jsRuntime string
 	cookies   string
 	browser   string
 }
@@ -15,49 +16,49 @@ type Client struct {
 type Option func(*Client) error
 
 func WithCookies(cookies string) Option {
-    return func(c *Client) error {
-        c.cookies = cookies
-        return nil
-    }
+	return func(c *Client) error {
+		c.cookies = cookies
+		return nil
+	}
 }
 
 func WithBrowser(browser string) Option {
-    return func(c *Client) error {
-        c.browser = browser
-        return nil
-    }
+	return func(c *Client) error {
+		c.browser = browser
+		return nil
+	}
 }
 
 func NewClient(
 	bin string,
-    ffmpegBin string,
+	ffmpegBin string,
 	jsRuntime string,
-    opts ...Option,
-) (*Client,error) {
-    client := &Client{
+	opts ...Option,
+) (*Client, error) {
+	client := &Client{
 		bin:       bin,
-		ffmpegBin:   ffmpegBin,
+		ffmpegBin: ffmpegBin,
 		jsRuntime: jsRuntime,
 	}
-    for _, opt := range opts {
-        if err := opt(client); err != nil {
-            return nil, err
-        }
-    }
+	for _, opt := range opts {
+		if err := opt(client); err != nil {
+			return nil, err
+		}
+	}
 	return client, nil
 }
 
 func (c *Client) DownloadVideo(url, outputDir string) (string, error) {
-    args := c.baseArgs()
-    args = append(
-        args,
-        []string{
-            url,
-            "-P", outputDir,
-		    "--remux-video", "mp4",
-        }...,
-    )
-	path, err := runBin(c.bin,args...)
+	args := c.baseArgs()
+	args = append(
+		args,
+		[]string{
+			url,
+			"-P", outputDir,
+			"--remux-video", "mp4",
+		}...,
+	)
+	path, err := runBin(c.bin, args...)
 	if err != nil {
 		return "", err
 	}
@@ -65,13 +66,21 @@ func (c *Client) DownloadVideo(url, outputDir string) (string, error) {
 	return newPath, nil
 }
 
-func (c *Client) VideoToAudio(videoPath string) (string,error) {
-    out, err := runBin(
-        c.ffmpegBin,
-        "-i", videoPath,
-    )
-    if err != nil {
-        return "", err
-    }
-    return out, nil
+func (c *Client) VideoToAudio(videoPath string) (string, error) {
+	fileExt := filepath.Ext(videoPath)
+	filename := strings.TrimSuffix(videoPath, fileExt)
+	_, err := runBin(
+		c.ffmpegBin,
+		"-i", videoPath,
+		"-y",
+		"-vn",
+		"-loglevel", "error",
+		"-c:a", "libmp3lame",
+		"-q:a", "2",
+		filename,
+	)
+	if err != nil {
+		return "", err
+	}
+	return filename, nil
 }

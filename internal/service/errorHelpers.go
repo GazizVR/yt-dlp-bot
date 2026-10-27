@@ -11,12 +11,12 @@ func (s *Service) sendError(
 	ctx context.Context,
 	chatId int64,
 	msgToReply int64,
-    action string,
+	action callbackAction,
 	data string,
 ) {
 	button := &telegrambot.InlineKeyboardButton{
 		Text:         TryAgainText,
-		CallbackData: fmt.Sprintf("%s-%s",action,data),
+		CallbackData: fmt.Sprintf("%s-%s", action, data),
 	}
 	params := telegrambot.SendMessageParams{
 		ChatID: chatId,
@@ -35,12 +35,12 @@ func (s *Service) editToError(
 	ctx context.Context,
 	chatId int64,
 	messageId int64,
-    action string,
+	action callbackAction,
 	data string,
 ) {
 	button := &telegrambot.InlineKeyboardButton{
 		Text:         TryAgainText,
-		CallbackData: fmt.Sprintf("%s-%s",action,data),
+		CallbackData: fmt.Sprintf("%s-%s", action, data),
 	}
 	markup := telegrambot.InlineKeyboardMarkup{
 		Keyboard: [][]telegrambot.InlineKeyboardButton{{*button}},
