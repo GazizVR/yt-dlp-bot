@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 	bot, err := telegrambot.NewBot(
 		cfg.BotToken,
 		telegrambot.WithBaseURL(cfg.BotAPIBaseURL),
@@ -24,12 +27,12 @@ func main() {
 		cfg.FfmpegBin,
 		cfg.JsRuntime,
 		ytdlp.WithBrowser(cfg.Browser),
-        ytdlp.WithCookies(cfg.Cookies),
+		ytdlp.WithCookies(cfg.Cookies),
 	)
-    if err != nil {
-        log.Fatal(err)
-    }
-	service := service.NewService(bot, ytdlp,ytdlp)
+	if err != nil {
+		log.Fatal(err)
+	}
+	service := service.NewService(bot, ytdlp, ytdlp)
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}
