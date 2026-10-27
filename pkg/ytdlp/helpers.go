@@ -8,7 +8,7 @@ import (
 
 func (c *Client) baseArgs() []string {
 	args := []string{
-		"-o", "%(id)s.%(ext)s",
+		"-o", "m%(id)s.%(ext)s",
 		"--remote-components", "ejs:github",
 		"--quiet",
 		"--no-warnings",
