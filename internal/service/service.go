@@ -9,28 +9,31 @@ import (
 )
 
 type Downloader interface {
-    DownloadVideo(url, outputDir string) (string,error)
+	DownloadVideo(url, outDir string) (string, error)
 }
 
 type Converter interface {
-    VideoToAudio(videoPath string) (string,error)
+	VideoToAudio(videoPath, outDir string) (string, error)
 }
 
 type Service struct {
 	bot        *telegrambot.Bot
 	downloader Downloader
-    converter Converter
+	converter  Converter
+	filesDir   string
 }
 
 func NewService(
 	bot *telegrambot.Bot,
 	downloader Downloader,
-    converter Converter,
+	converter Converter,
+	filesDir string,
 ) *Service {
 	return &Service{
 		bot:        bot,
 		downloader: downloader,
-        converter: converter,
+		converter:  converter,
+		filesDir:   filesDir,
 	}
 }
 

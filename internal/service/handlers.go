@@ -139,7 +139,7 @@ func (s *Service) handleCallbackQuery(
 			s.editToError(ctx, msg.Chat.ID, msg.ID, againAudio, data)
 			return err
 		}
-		if err := s.editToAudio(ctx, msg.Chat.ID, msg.ID, data); err != nil {
+		if err := s.editToAudio(ctx, msg.Chat.ID, msg.ID, data, message.ID); err != nil {
 			return err
 		}
 	case againAudio:
@@ -155,7 +155,7 @@ func (s *Service) handleCallbackQuery(
 			s.editToError(ctx, message.Chat.ID, message.ID, againAudio, data)
 			return err
 		}
-		if err := s.editToAudio(ctx, msg.Chat.ID, msg.ID, data); err != nil {
+		if err := s.editToAudio(ctx, msg.Chat.ID, msg.ID, data, message.ID); err != nil {
 			return err
 		}
 	}

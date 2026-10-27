@@ -8,7 +8,7 @@ import (
 
 func (c *Client) baseArgs() []string {
 	args := []string{
-		"-o", "%(id)s-audio.%(ext)s",
+		"-o", "%(id)s.%(ext)s",
 		"--remote-components", "ejs:github",
 		"--quiet",
 		"--no-warnings",
@@ -39,7 +39,7 @@ func runBin(bin string, args ...string) (string, error) {
 	cmd.Stderr = &stdErr
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("err: %w, stdErr: %s",err,stdErr.String())
-    }
+		return "", fmt.Errorf("err: %w, stdErr: %s", err, stdErr.String())
+	}
 	return string(out), nil
 }

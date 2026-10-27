@@ -14,13 +14,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	bot, err := telegrambot.NewBot(
-		cfg.BotToken,
-		telegrambot.WithBaseURL(cfg.BotAPIBaseURL),
-		telegrambot.WithFilesDir(cfg.BotFilesDir),
-	)
+	bot, err := telegrambot.NewBot(cfg.BotToken)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if cfg.BotAPIBaseURL != "" {
+		if err := telegrambot.WithBaseURL(cfg.BotAPIBaseURL)(bot); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if cfg.BotFilesDir != "" {
+		if err := telegrambot.WithFilesDir(cfg.BotFilesDir)(bot); err != nil {
+			log.Fatal(err)
+		}
 	}
 	ytdlp, err := ytdlp.NewClient(
 		cfg.YtDlpBin,
@@ -32,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	service := service.NewService(bot, ytdlp, ytdlp)
+	service := service.NewService(bot, ytdlp, ytdlp, cfg.BotFilesDir)
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}

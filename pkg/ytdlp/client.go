@@ -48,13 +48,13 @@ func NewClient(
 	return client, nil
 }
 
-func (c *Client) DownloadVideo(url, outputDir string) (string, error) {
+func (c *Client) DownloadVideo(url, outDir string) (string, error) {
 	args := c.baseArgs()
 	args = append(
 		args,
 		[]string{
 			url,
-			"-P", outputDir,
+			"-P", outDir,
 			"--remux-video", "mp4",
 		}...,
 	)
@@ -66,21 +66,22 @@ func (c *Client) DownloadVideo(url, outputDir string) (string, error) {
 	return newPath, nil
 }
 
-func (c *Client) VideoToAudio(videoPath string) (string, error) {
+func (c *Client) VideoToAudio(videoPath, outDir string) (string, error) {
 	fileExt := filepath.Ext(videoPath)
-	filename := strings.TrimSuffix(videoPath, fileExt)
+	filename := strings.TrimSuffix(filepath.Base(videoPath), fileExt) + ".ogg"
+	filepath := filepath.Join(outDir, filename)
 	_, err := runBin(
 		c.ffmpegBin,
 		"-i", videoPath,
 		"-y",
 		"-vn",
 		"-loglevel", "error",
-		"-c:a", "libmp3lame",
-		"-q:a", "2",
-		filename,
+		"-c:a", "libopus",
+		"-b:a", "128k",
+		filepath,
 	)
 	if err != nil {
 		return "", err
 	}
-	return filename, nil
+	return filepath, nil
 }

@@ -13,7 +13,7 @@ func (s *Service) editToVideo(
 	messageID int64,
 	url string,
 ) error {
-	mediaPath, err := s.downloader.DownloadVideo(url, "tmp")
+	mediaPath, err := s.downloader.DownloadVideo(url, s.filesDir)
 	if err != nil {
 		s.editToError(ctx, chatID, messageID, againVideo, url)
 		return err
@@ -24,12 +24,12 @@ func (s *Service) editToVideo(
 		},
 		Type: telegrambot.MediaTypeVideo,
 	}
-	button := &telegrambot.InlineKeyboardButton{
+	button := telegrambot.InlineKeyboardButton{
 		Text:         DownloadAudioText,
 		CallbackData: fmt.Sprintf("%s-%s", sendAudio, mediaPath),
 	}
 	markup := &telegrambot.InlineKeyboardMarkup{
-		Keyboard: [][]telegrambot.InlineKeyboardButton{{*button}},
+		Keyboard: [][]telegrambot.InlineKeyboardButton{{button}},
 	}
 	if _, err := s.bot.EditMessageMedia(
 		ctx,
@@ -50,28 +50,33 @@ func (s *Service) editToAudio(
 	ctx context.Context,
 	chatID int64,
 	messageID int64,
-	mediaPath string,
+	videoPath string,
+	replyMsgID int64,
 ) error {
-	audioPath, err := s.converter.VideoToAudio(mediaPath)
+	audioPath, err := s.converter.VideoToAudio(videoPath, s.filesDir)
 	if err != nil {
-		s.editToError(ctx, chatID, messageID, againAudio, mediaPath)
+		s.editToError(ctx, chatID, messageID, againAudio, videoPath)
 		return err
 	}
-	inputMedia := telegrambot.InputMedia{
-		Media: &telegrambot.LocalSource{
-			Filepath: audioPath,
-		},
-		Type: telegrambot.MediaTypeAudio,
-	}
-	if _, err := s.bot.EditMessageMedia(
+	if err := s.bot.DeleteMessage(
 		ctx,
-		telegrambot.EditMessageMediaParams{
+		telegrambot.DeleteMessageParams{
 			ChatID:    chatID,
 			MessageID: messageID,
-			Media:     inputMedia,
 		},
 	); err != nil {
-		s.editToError(ctx, chatID, messageID, againAudio, mediaPath)
+		s.editToError(ctx, chatID, messageID, againAudio, videoPath)
+		return err
+	}
+	if _, err := s.bot.SendVoice(
+		ctx,
+		telegrambot.SendVoiceParams{
+			ChatID:      chatID,
+			Voice:       &telegrambot.LocalSource{Filepath: audioPath},
+			ReplyParams: &telegrambot.ReplyParameters{MessageID: &replyMsgID},
+		},
+	); err != nil {
+		s.editToError(ctx, chatID, messageID, againAudio, videoPath)
 		return err
 	}
 	return nil
