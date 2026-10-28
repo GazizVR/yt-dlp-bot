@@ -1,13 +1,14 @@
 package ytdlp
 
 import (
-	"path/filepath"
+	"bytes"
+	"fmt"
+	"os/exec"
 	"strings"
 )
 
 type Client struct {
 	bin       string
-	ffmpegBin string
 	jsRuntime string
 	cookies   string
 	browser   string
@@ -31,13 +32,11 @@ func WithBrowser(browser string) Option {
 
 func NewClient(
 	bin string,
-	ffmpegBin string,
 	jsRuntime string,
 	opts ...Option,
 ) (*Client, error) {
 	client := &Client{
 		bin:       bin,
-		ffmpegBin: ffmpegBin,
 		jsRuntime: jsRuntime,
 	}
 	for _, opt := range opts {
@@ -48,17 +47,51 @@ func NewClient(
 	return client, nil
 }
 
+func (c *Client) baseArgs() []string {
+	args := []string{
+		"-o", "m%(id)s.%(ext)s",
+		"--remote-components", "ejs:github",
+		"--quiet",
+		"--no-warnings",
+		"--print", "after_move:filepath",
+	}
+	if len(c.cookies) > 0 {
+		args = append(args, "--cookies")
+		args = append(args, c.cookies)
+	}
+	if len(c.jsRuntime) > 0 {
+		args = append(args, "--js-runtime")
+		args = append(args, c.jsRuntime)
+	}
+	if len(c.browser) > 0 {
+		args = append(args, "--cookies-from-browser")
+		args = append(args, c.browser)
+	}
+	return args
+}
+
+func (c *Client) runBin(args ...string) (string, error) {
+	path, err := exec.LookPath(c.bin)
+	if err != nil {
+		return "", err
+	}
+	args = append(args, c.baseArgs()...)
+	cmd := exec.Command(path, args...)
+	var stdErr bytes.Buffer
+	cmd.Stderr = &stdErr
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("err: %w, stdErr: %s", err, stdErr.String())
+	}
+	return string(out), nil
+}
+
 func (c *Client) DownloadVideo(url, outDir string) (string, error) {
-	args := c.baseArgs()
-	args = append(
-		args,
-		[]string{
-			url,
-			"-P", outDir,
-			"--remux-video", "mp4",
-		}...,
+	path, err := c.runBin(
+		url,
+		"-P", outDir,
+		"--remux-video", "mp4",
 	)
-	path, err := runBin(c.bin, args...)
 	if err != nil {
 		return "", err
 	}
@@ -66,22 +99,16 @@ func (c *Client) DownloadVideo(url, outDir string) (string, error) {
 	return newPath, nil
 }
 
-func (c *Client) VideoToAudio(videoPath, outDir string) (string, error) {
-	fileExt := filepath.Ext(videoPath)
-	filename := strings.TrimSuffix(filepath.Base(videoPath), fileExt) + ".ogg"
-	filepath := filepath.Join(outDir, filename)
-	_, err := runBin(
-		c.ffmpegBin,
-		"-i", videoPath,
-		"-y",
-		"-vn",
-		"-loglevel", "error",
-		"-c:a", "libopus",
-		"-b:a", "128k",
-		filepath,
+func (c *Client) DownloadAudio(url, outDir string) (string, error) {
+	path, err := c.runBin(
+		url,
+		"-P", outDir,
+		"-x",
+		"-f", "ba[ext=m4a]/ba",
 	)
 	if err != nil {
 		return "", err
 	}
-	return filepath, nil
+	newPath := strings.ReplaceAll(path, "\n", "")
+	return newPath, nil
 }

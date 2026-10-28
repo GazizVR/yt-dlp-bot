@@ -13,7 +13,8 @@ type Config struct {
 	Cookies       string
 	JsRuntime     string
 	Browser       string
-	FfmpegBin     string
+	RedisAddr     string
+	RedisPassword string
 }
 
 func Load() (*Config, error) {
@@ -29,18 +30,19 @@ func Load() (*Config, error) {
 	if ytDlpBin == "" {
 		ytDlpBin = "yt-dlp"
 	}
-	ffmpegBin := os.Getenv("FFMPEG_BIN")
-	if ffmpegBin == "" {
-		ffmpegBin = "ffmpeg"
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		return nil, errors.New("redis addr must not be empty")
 	}
 	return &Config{
 		BotToken:      botToken,
 		BotAPIBaseURL: os.Getenv("BOT_API_BASE_URL"),
 		BotFilesDir:   os.Getenv("BOT_FILES_DIR"),
 		YtDlpBin:      ytDlpBin,
-		FfmpegBin:     ffmpegBin,
 		Cookies:       os.Getenv("COOKIES"),
 		JsRuntime:     jsRuntime,
 		Browser:       os.Getenv("BROWSER"),
+		RedisAddr:     redisAddr,
+		RedisPassword: os.Getenv("REDIS_PASSWORD"),
 	}, nil
 }

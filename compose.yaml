@@ -11,6 +11,8 @@ services:
       - telegram-bot-data:/var/lib/telegram-bot-api
     ports:
       - "${TELEGRAM_HTTP_PORT}:${TELEGRAM_HTTP_PORT}"
+  valkey:
+    image: valkey/valkey:9.1-alpine
   bot:
     build:
       context: .
@@ -23,5 +25,6 @@ services:
       - BOT_API_BASE_URL=http://telegram-bot-api:${TELEGRAM_HTTP_PORT}
       - BOT_FILES_DIR=/var/lib/telegram-bot-api/${BOT_TOKEN}
       - JS_RUNTIME=quickjs
+      - REDIS_ADDR=valkey:6379
 volumes:
   telegram-bot-data:

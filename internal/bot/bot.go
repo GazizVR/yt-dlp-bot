@@ -8,11 +8,17 @@ import (
 )
 
 type Bot struct {
-	filesDir string
-	bot      *telegrambot.Bot
+	filesDir   string
+	bot        *telegrambot.Bot
+	downloader Downloader
+	store      RequestStore
 }
 
-func NewBot(baseURL, token, filesDir string) (*Bot, error) {
+func NewBot(
+	baseURL, token, filesDir string,
+	downloader Downloader,
+	store RequestStore,
+) (*Bot, error) {
 	bot, err := telegrambot.NewBot(token)
 	if err != nil {
 		return nil, err
@@ -28,14 +34,16 @@ func NewBot(baseURL, token, filesDir string) (*Bot, error) {
 		}
 	}
 	localBot := &Bot{
-		filesDir: filesDir,
-		bot:      bot,
+		filesDir:   filesDir,
+		bot:        bot,
+		downloader: downloader,
+		store:      store,
 	}
 	return localBot, nil
 }
 
 func (b *Bot) ListenUpdates(ctx context.Context) error {
-	handler := NewHandler(b.bot, b.filesDir)
+	handler := NewHandler(b.bot, b.filesDir, b.downloader, b.store)
 	routes := []Route{
 		{
 			Match: func(u telegrambot.Update) bool {

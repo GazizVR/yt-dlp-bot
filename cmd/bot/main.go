@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 
-	telegrambot "github.com/gazizvr/go-telegram-bot"
+	"github.com/gazizvr/yt-dlp-bot/internal/bot"
 	"github.com/gazizvr/yt-dlp-bot/internal/config"
-	"github.com/gazizvr/yt-dlp-bot/internal/service"
+	"github.com/gazizvr/yt-dlp-bot/internal/repository"
 	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -14,23 +16,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	bot, err := telegrambot.NewBot(cfg.BotToken)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if cfg.BotAPIBaseURL != "" {
-		if err := telegrambot.WithBaseURL(cfg.BotAPIBaseURL)(bot); err != nil {
-			log.Fatal(err)
-		}
-	}
-	if cfg.BotFilesDir != "" {
-		if err := telegrambot.WithFilesDir(cfg.BotFilesDir)(bot); err != nil {
-			log.Fatal(err)
-		}
-	}
 	ytdlp, err := ytdlp.NewClient(
 		cfg.YtDlpBin,
-		cfg.FfmpegBin,
 		cfg.JsRuntime,
 		ytdlp.WithBrowser(cfg.Browser),
 		ytdlp.WithCookies(cfg.Cookies),
@@ -38,8 +25,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	service := service.NewService(bot, ytdlp, ytdlp, cfg.BotFilesDir)
-	if err := service.Run(); err != nil {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisAddr,
+		Password: cfg.RedisPassword,
+	})
+	requestStore := repository.NewRequestStore(rdb)
+	bot, err := bot.NewBot(cfg.BotAPIBaseURL, cfg.BotToken, cfg.BotFilesDir, ytdlp, requestStore)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx := context.Background()
+	if err := bot.ListenUpdates(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -15,6 +15,6 @@ FROM alpine:3.24.3
 
 COPY --from=builder /app/bot /bot
 
-RUN apk add --no-cache yt-dlp ffmpeg quickjs
+RUN apk add --no-cache yt-dlp quickjs
 
 CMD ["./bot"]
