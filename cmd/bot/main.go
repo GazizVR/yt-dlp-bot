@@ -7,6 +7,7 @@ import (
 	"github.com/gazizvr/yt-dlp-bot/internal/bot"
 	"github.com/gazizvr/yt-dlp-bot/internal/config"
 	"github.com/gazizvr/yt-dlp-bot/internal/repository"
+	"github.com/gazizvr/yt-dlp-bot/internal/service"
 	"github.com/gazizvr/yt-dlp-bot/pkg/ytdlp"
 	"github.com/redis/go-redis/v9"
 )
@@ -30,7 +31,8 @@ func main() {
 		Password: cfg.RedisPassword,
 	})
 	requestStore := repository.NewRequestStore(rdb)
-	bot, err := bot.NewBot(cfg.BotAPIBaseURL, cfg.BotToken, cfg.BotFilesDir, ytdlp, requestStore)
+	mediaService := service.NewMediaService(ytdlp, requestStore, cfg.BotFilesDir)
+	bot, err := bot.NewBot(cfg.BotAPIBaseURL, cfg.BotToken, cfg.BotFilesDir, mediaService)
 	if err != nil {
 		log.Fatal(err)
 	}

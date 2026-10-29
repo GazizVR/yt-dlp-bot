@@ -22,11 +22,11 @@ func errorMarkup(callbackData string) *telegrambot.InlineKeyboardMarkup {
 func downloadOptionsMarkup(reqID, separator string) *telegrambot.InlineKeyboardMarkup {
 	videoButton := telegrambot.InlineKeyboardButton{
 		Text:         videoBtnText,
-		CallbackData: reqID + separator + string(domain.SendVideo),
+		CallbackData: reqID + separator + string(domain.DownloadVideo),
 	}
 	audioButton := telegrambot.InlineKeyboardButton{
 		Text:         audioBtnText,
-		CallbackData: reqID + separator + string(domain.SendAudio),
+		CallbackData: reqID + separator + string(domain.DownloadAudio),
 	}
 	return &telegrambot.InlineKeyboardMarkup{
 		Keyboard: [][]telegrambot.InlineKeyboardButton{

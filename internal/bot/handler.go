@@ -10,35 +10,24 @@ import (
 	"github.com/gazizvr/yt-dlp-bot/internal/domain"
 )
 
-type Downloader interface {
-	DownloadVideo(url, outDir string) (string, error)
-	DownloadAudio(url, outDir string) (string, error)
-}
-
-type RequestStore interface {
-	Get(ctx context.Context, id int64) (string, error)
-	Create(ctx context.Context, mediaURL string) (int64, error)
-	Delete(ctx context.Context, id int64) error
+type MediaService interface {
+	Create(ctx context.Context, url string) (int64, error)
+	Download(ctx context.Context, id int64, action domain.Action) (filePath string, isVideo bool, err error)
+	Release(ctx context.Context, id int64) error
 }
 
 type Handler struct {
-	bot      *telegrambot.Bot
-	src      Downloader
-	filesDir string
-	store    RequestStore
+	bot *telegrambot.Bot
+	src MediaService
 }
 
 func NewHandler(
 	bot *telegrambot.Bot,
-	fileDir string,
-	src Downloader,
-	store RequestStore,
+	src MediaService,
 ) *Handler {
 	return &Handler{
-		bot:      bot,
-		filesDir: fileDir,
-		src:      src,
-		store:    store,
+		bot: bot,
+		src: src,
 	}
 }
 
@@ -63,7 +52,7 @@ func (h *Handler) OnDownload(
 	if url == "" {
 		url = upd.Message.Text
 	}
-	reqID, err := h.store.Create(ctx, url)
+	reqID, err := h.src.Create(ctx, url)
 	if err != nil {
 		h.bot.SendMessage(ctx, view.ErrorMessageParams(upd.Message.Chat.ID, upd.Message.ID))
 		return err
@@ -101,14 +90,8 @@ func (h *Handler) OnCallbackQuery(
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
 		return ErrEmptyCallbackData
 	}
-	separatorInd := strings.Index(data, separator)
-	if separatorInd == -1 {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
-		return ErrInvalidCallbackData
-	}
-	rawID := data[:separatorInd]
-	rawID = strings.TrimSpace(rawID)
-	if rawID == "" {
+	rawID, rawAction, ok := strings.Cut(data, separator)
+	if !ok || rawID == "" || rawAction == "" {
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
 		return ErrInvalidCallbackData
 	}
@@ -117,35 +100,17 @@ func (h *Handler) OnCallbackQuery(
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
 		return err
 	}
-	rawAction := data[separatorInd+1:]
-	rawAction = strings.TrimSpace(rawAction)
-	if rawAction == "" {
+	action := domain.Action(rawAction)
+	filepath, isVideo, err := h.src.Download(ctx, id, action)
+	if err != nil {
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
 		return ErrInvalidCallbackData
 	}
-	action := domain.Action(rawAction)
-	mediaPath, err := h.store.Get(ctx, id)
-	if err != nil {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.ID, data))
-		return err
-	}
-	var filepath string
 	var inputMediaType telegrambot.MediaType
-	switch action {
-	case domain.SendVideo:
-		filepath, err = h.src.DownloadVideo(mediaPath, h.filesDir)
-		if err != nil {
-			h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.ID, data))
-			return err
-		}
+	if isVideo {
 		inputMediaType = telegrambot.MediaTypeVideo
-	case domain.SendAudio:
-		filepath, err = h.src.DownloadAudio(mediaPath, h.filesDir)
-		if err != nil {
-			h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.ID, data))
-			return err
-		}
-		inputMediaType = telegrambot.MediaTypeAudio
+	} else {
+		inputMediaType = telegrambot.MediaTypeVideo
 	}
 	params := telegrambot.EditMessageMediaParams{
 		ChatID:    msg.Chat.ID,
@@ -159,7 +124,7 @@ func (h *Handler) OnCallbackQuery(
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.ID, data))
 		return err
 	}
-	if err := h.store.Delete(ctx, id); err != nil {
+	if err := h.src.Release(ctx, id); err != nil {
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.ID, data))
 		return err
 	}

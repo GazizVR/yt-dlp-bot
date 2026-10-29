@@ -2,5 +2,5 @@ package domain
 
 type Action string
 
-const SendVideo Action = "sendvideo"
-const SendAudio Action = "sendaudio"
+const DownloadVideo Action = "dlvd"
+const DownloadAudio Action = "dlad"
