@@ -1,15 +1,15 @@
 package view
 
-const startText = "🔗 Отправьте ссылку на видео. В группах используйте: /dl ссылка"
+const startText = "🔗 Send a video link. In groups use: /dl link"
 
-const errorText string = "❌ Внутренняя ошибка, попробуйте снова"
+const errorText string = "❌ Internal error, please try again"
 
-const waitText string = "⏳ Подождите, загружается..."
+const waitText string = "⏳ Please wait, downloading..."
 
-const chooseDownloadText string = "👇 Выберите опцию установки: "
+const chooseDownloadText string = "👇 Select download option: "
 
-const tryAgainBtnText string = "🔄 Еще раз"
+const tryAgainBtnText string = "🔄 Try again"
 
-const videoBtnText string = "🎬 Видео"
+const videoBtnText string = "🎬 Video"
 
-const audioBtnText string = "🎧 Аудио"
+const audioBtnText string = "🎧 Audio"
