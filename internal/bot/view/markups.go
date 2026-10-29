@@ -11,7 +11,7 @@ var EmptyMarkup = &telegrambot.InlineKeyboardMarkup{
 
 func errorMarkup(callbackData string) *telegrambot.InlineKeyboardMarkup {
 	button := &telegrambot.InlineKeyboardButton{
-		Text:         "🔄 Еще раз",
+		Text:         tryAgainBtnText,
 		CallbackData: callbackData,
 	}
 	return &telegrambot.InlineKeyboardMarkup{
@@ -21,11 +21,11 @@ func errorMarkup(callbackData string) *telegrambot.InlineKeyboardMarkup {
 
 func downloadOptionsMarkup(reqID, separator string) *telegrambot.InlineKeyboardMarkup {
 	videoButton := telegrambot.InlineKeyboardButton{
-		Text:         "🎬 Видео",
+		Text:         videoBtnText,
 		CallbackData: reqID + separator + string(domain.SendVideo),
 	}
 	audioButton := telegrambot.InlineKeyboardButton{
-		Text:         "🎧 Аудио",
+		Text:         audioBtnText,
 		CallbackData: reqID + separator + string(domain.SendAudio),
 	}
 	return &telegrambot.InlineKeyboardMarkup{

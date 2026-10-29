@@ -55,7 +55,7 @@ func (h *Handler) OnStart(
 
 const separator string = "-"
 
-func (h *Handler) OnURL(
+func (h *Handler) OnDownload(
 	ctx context.Context,
 	upd telegrambot.Update,
 ) error {
@@ -69,7 +69,7 @@ func (h *Handler) OnURL(
 		return err
 	}
 	strReqID := strconv.Itoa(int(reqID))
-	if _, err := h.bot.SendMessage(ctx, view.DownloadOptionsParams(upd.Message.Chat.ID, upd.Message.ID, strReqID, separator)); err != nil {
+	if _, err := h.bot.SendMessage(ctx, view.ChooseDownloadMessageParams(upd.Message.Chat.ID, upd.Message.ID, strReqID, separator)); err != nil {
 		h.bot.SendMessage(ctx, view.ErrorMessageParams(upd.Message.Chat.ID, upd.Message.ID))
 		return err
 	}
@@ -91,7 +91,7 @@ func (h *Handler) OnCallbackQuery(
 	default:
 		return ErrMessageNotFound
 	}
-	msg, err := h.bot.EditMessageText(ctx, view.WaitEditMessageParams(msgID, chatID))
+	msg, err := h.bot.EditMessageText(ctx, view.WaitMessageParams(msgID, chatID))
 	if err != nil {
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(chatID, msgID))
 		return err

@@ -67,7 +67,7 @@ func (b *Bot) ListenUpdates(ctx context.Context) error {
 				}
 				return match
 			},
-			Handle: handler.OnURL,
+			Handle: handler.OnDownload,
 		},
 		{
 			Match: func(u telegrambot.Update) bool {

@@ -2,8 +2,6 @@ package view
 
 import telegrambot "github.com/gazizvr/go-telegram-bot"
 
-const errorText string = "❌ Внутренняя ошибка, попробуйте снова"
-
 func ErrorMessageParams(chatID, replyMsgID int64) telegrambot.SendMessageParams {
 	return telegrambot.SendMessageParams{
 		ChatID: chatID,
@@ -32,11 +30,11 @@ func ErrorEditMessageMarkupParams(chatID, msgID int64, callbackData string) tele
 	}
 }
 
-func WaitEditMessageParams(msgID, chatID int64) telegrambot.EditMessageTextParams {
+func WaitMessageParams(msgID, chatID int64) telegrambot.EditMessageTextParams {
 	return telegrambot.EditMessageTextParams{
 		ChatID:      chatID,
 		MessageID:   msgID,
-		Text:        "⏳ Подождите, загружается...",
+		Text:        waitText,
 		ReplyMarkup: EmptyMarkup,
 	}
 }
@@ -44,14 +42,14 @@ func WaitEditMessageParams(msgID, chatID int64) telegrambot.EditMessageTextParam
 func StartMessageParams(chatID int64) telegrambot.SendMessageParams {
 	return telegrambot.SendMessageParams{
 		ChatID: chatID,
-		Text:   "🔗 Отправьте ссылку на видео",
+		Text:   startText,
 	}
 }
 
-func DownloadOptionsParams(chatID, replyMsgID int64, reqID, separator string) telegrambot.SendMessageParams {
+func ChooseDownloadMessageParams(chatID, replyMsgID int64, reqID, separator string) telegrambot.SendMessageParams {
 	return telegrambot.SendMessageParams{
 		ChatID:      chatID,
-		Text:        "👇 Выберите опцию установки: ",
+		Text:        chooseDownloadText,
 		ReplyMarkup: downloadOptionsMarkup(reqID, separator),
 		ReplyParams: &telegrambot.ReplyParameters{
 			MessageID: &replyMsgID,
