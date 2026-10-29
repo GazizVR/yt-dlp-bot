@@ -26,5 +26,6 @@ services:
       - BOT_FILES_DIR=/var/lib/telegram-bot-api/${BOT_TOKEN}
       - JS_RUNTIME=quickjs
       - REDIS_ADDR=valkey:6379
+      - COOKIES=${COOKIES}
 volumes:
   telegram-bot-data:
