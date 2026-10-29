@@ -17,4 +17,4 @@ COPY --from=builder /app/bot /bot
 
 RUN apk add --no-cache yt-dlp quickjs
 
-CMD ["./bot"]
+ENTRYPOINT ["./bot"]
