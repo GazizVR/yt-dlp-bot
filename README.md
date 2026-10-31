@@ -1,145 +1,62 @@
-# 🤖 yt-dlp Telegram Bot
+# 🎬 yt-dlp-bot
 
-> A lightweight Telegram bot written in **Go** that downloads videos and audio using **yt-dlp** and sends them directly back to users.
+A tiny Telegram bot that turns video links into files. Send a link, pick **Video** or **Audio**, and get it back in chat. ✨
 
-![Go](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)
-![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker)
-![Telegram](https://img.shields.io/badge/Telegram-Bot-26A5E4?logo=telegram)
-![License](https://img.shields.io/badge/License-MIT-green)
+Built with Go, [yt-dlp](https://github.com/yt-dlp/yt-dlp) and a sprinkle of Valkey.
 
----
+## How it works
 
-## ✨ Features
+1. 🔗 Send the bot a link
+2. 👇 Tap **🎬 Video** or **🎧 Audio**
+3. 🎉 Receive your file
 
-- 🎥 Download videos from hundreds of supported websites via **yt-dlp**
-- 🎵 Download audio or video content
-- 🤖 Telegram Bot API integration
-- 🍪 Supports authenticated downloads using cookies
-- ⚡ Fast and lightweight Go implementation
-- 🐳 Docker & Docker Compose support
-- 🧩 Configurable JavaScript runtime for yt-dlp
+Videos come as `mp4`, audio as `m4a` when available.
 
----
+## Quick start with Docker 🐳
 
-## 📁 Project Structure
+Create a `.env` file:
 
-```
-.
-├── cmd/                 # Application entrypoint
-├── internal/
-│   ├── config/          # Configuration loader
-│   └── service/         # Bot logic & handlers
-├── pkg/
-│   └── ytdlp/           # yt-dlp wrapper
-├── Dockerfile
-├── compose.yaml
-├── go.mod
-├── yt-dlp
-└── cookies.txt
+```env
+BOT_TOKEN=your-bot-token
+TELEGRAM_API_ID=your-api-id
+TELEGRAM_API_HASH=your-api-hash
+TELEGRAM_HTTP_PORT=8081
 ```
 
----
+Then run:
 
-## ⚙️ Configuration
-
-The application uses environment variables.
-
-| Variable | Description |
-|----------|-------------|
-| `TOKEN` | Telegram Bot Token |
-| `BASE_URL` | Telegram Bot API URL |
-| `YT_DLP_PATH` | Path to the `yt-dlp` executable |
-| `COOKIES_PATH` | Path to cookies file |
-| `JS_RUNTIME` | JavaScript runtime used by yt-dlp |
-| `BROWSER` | Browser profile (optional, for cookie extraction) |
-
----
-
-## 🚀 Running with Docker
-
-```bash
-docker compose up --build
+```sh
+docker compose up -d --build
 ```
 
----
+That's it! Compose starts the bot, a local Telegram Bot API server and Valkey for you.
 
-## 🛠️ Running Locally
+> 💡 You can get `BOT_TOKEN` from [@BotFather](https://t.me/BotFather) and the API ID/hash from [my.telegram.org](https://my.telegram.org).
 
-### 1. Clone the repository
+## Run locally 🛠️
 
-```bash
-git clone <repository-url>
-cd yt-dlp-bot
+You'll need Go, `yt-dlp`, a JS runtime (like `quickjs`) and a running Valkey/Redis.
+
+```sh
+./start.sh
 ```
 
-### 2. Install dependencies
+It loads your `.env` and starts the bot.
 
-- Go 1.26+
-- Node.js
-- yt-dlp
+## Configuration ⚙️
 
-### 3. Configure environment
+| Variable | Required | What it does |
+| --- | :---: | --- |
+| `BOT_TOKEN` | ✅ | Your Telegram bot token |
+| `JS_RUNTIME` | ✅ | JS runtime for yt-dlp (e.g. `quickjs`) |
+| `REDIS_ADDR` | ✅ | Valkey/Redis address (e.g. `localhost:6379`) |
+| `REDIS_PASSWORD` | | Valkey/Redis password |
+| `BOT_API_BASE_URL` | | Local Telegram Bot API server URL |
+| `BOT_FILES_DIR` | | Where downloaded files are stored |
+| `YT_DLP_BIN` | | Path to yt-dlp (default: `yt-dlp`) |
+| `COOKIES` | | Path to a `cookies.txt` file |
+| `BROWSER` | | Browser to grab cookies from |
 
-```bash
-export TOKEN=your_bot_token
-export BASE_URL=http://localhost:8081
-export YT_DLP_PATH=./yt-dlp
-export COOKIES_PATH=./cookies.txt
-export JS_RUNTIME=node
-```
+## License 📄
 
-### 4. Run
-
-```bash
-go run ./cmd
-```
-
----
-
-## 🐳 Docker Compose
-
-The provided `compose.yaml` starts:
-
-- 📡 Telegram Bot API server
-- 🤖 Bot service
-
-Simply execute:
-
-```bash
-docker compose up -d
-```
-
----
-
-## 🔧 Technologies
-
-- Go
-- Telegram Bot API
-- yt-dlp
-- Docker
-- Docker Compose
-- Node.js
-
----
-
-## 📌 Notes
-
-- Some websites require authentication. Use a valid `cookies.txt` file.
-- Make sure the `yt-dlp` binary is executable.
-- A JavaScript runtime (such as Node.js) may be required for certain extractors.
-
----
-
-## 📄 License
-
-This project is distributed under the **MIT License**.
-
-Feel free to fork, modify and contribute! 🚀
-
----
-
-## ⭐ Contributing
-
-Contributions, issues and feature requests are always welcome.
-
-If you find this project useful, consider giving it a ⭐ on GitHub.
+MIT, have fun!
