@@ -104,13 +104,13 @@ func (h *Handler) OnCallbackQuery(
 	filepath, isVideo, err := h.src.Download(ctx, id, action)
 	if err != nil {
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
-		return ErrInvalidCallbackData
+		return err
 	}
 	var inputMediaType telegrambot.MediaType
 	if isVideo {
 		inputMediaType = telegrambot.MediaTypeVideo
 	} else {
-		inputMediaType = telegrambot.MediaTypeVideo
+		inputMediaType = telegrambot.MediaTypeAudio
 	}
 	params := telegrambot.EditMessageMediaParams{
 		ChatID:    msg.Chat.ID,

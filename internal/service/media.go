@@ -45,24 +45,24 @@ func (s *MediaService) Download(
 	id int64,
 	action domain.Action,
 ) (filePath string, isVideo bool, err error) {
+	isVideo = action == domain.DownloadVideo
 	mediaURL, err := s.store.Get(ctx, id)
 	if err != nil {
-		return "", false, err
+		return "", isVideo, err
 	}
 	switch action {
 	case domain.DownloadVideo:
-		isVideo = true
 		filePath, err = s.downloader.DownloadVideo(mediaURL, s.fileDir)
 		if err != nil {
-			return "", false, err
+			return "", isVideo, err
 		}
 	case domain.DownloadAudio:
 		filePath, err = s.downloader.DownloadAudio(mediaURL, s.fileDir)
 		if err != nil {
-			return "", false, err
+			return "", isVideo, err
 		}
 	default:
-		return "", false, errors.New("unexpected action")
+		return "", isVideo, errors.New("unexpected action")
 	}
 	return filePath, isVideo, nil
 }
