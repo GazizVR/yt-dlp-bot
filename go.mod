@@ -4,6 +4,7 @@ go 1.27.1
 
 require (
 	github.com/gazizvr/go-telegram-bot v0.0.0-20261029114353-5ee072ca4a2f
+	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.23.0
 )
 

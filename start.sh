@@ -1,5 +1,0 @@
-#!/bin/bash
-if [ -f .env ]; then
-    export $(cat .env | xargs)
-fi
-go run cmd/bot/main.go
