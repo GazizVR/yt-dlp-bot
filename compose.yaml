@@ -13,6 +13,7 @@ services:
       - "${TELEGRAM_HTTP_PORT}:${TELEGRAM_HTTP_PORT}"
   valkey:
     image: valkey/valkey:9.1-alpine
+    restart: unless-stopped
   bot:
     build:
       context: .
