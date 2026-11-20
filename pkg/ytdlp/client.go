@@ -91,6 +91,9 @@ func (c *Client) DownloadVideo(url, outDir string) (string, error) {
 		url,
 		"-P", outDir,
 		"--remux-video", "mp4",
+		"-f", "bv*[vcodec^=avc1]+ba[acodec^=mp4a]/b[ext=mp4]/b",
+		"--merge-output-format", "mp4",
+		"--postprocessor-args", "ffmpeg:-movflags +faststart",
 	)
 	if err != nil {
 		return "", err
