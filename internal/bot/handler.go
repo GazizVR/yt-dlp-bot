@@ -130,8 +130,9 @@ func (h *Handler) OnCallbackQuery(
 	var media telego.InputMedia
 	if isVideo {
 		media = &telego.InputMediaVideo{
-			Type:  telego.MediaTypeVideo,
-			Media: inputFile,
+			Type:              telego.MediaTypeVideo,
+			Media:             inputFile,
+			SupportsStreaming: true,
 		}
 	} else {
 		media = &telego.InputMediaAudio{
