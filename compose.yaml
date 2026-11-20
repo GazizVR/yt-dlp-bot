@@ -9,8 +9,6 @@ services:
       TELEGRAM_HTTP_PORT: ${TELEGRAM_HTTP_PORT}
     volumes:
       - telegram-bot-data:/var/lib/telegram-bot-api
-    ports:
-      - "${TELEGRAM_HTTP_PORT}:${TELEGRAM_HTTP_PORT}"
   valkey:
     image: valkey/valkey:9.1-alpine
     restart: unless-stopped
