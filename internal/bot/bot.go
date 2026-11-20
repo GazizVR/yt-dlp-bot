@@ -2,9 +2,9 @@ package bot
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
 )
 
 type Bot struct {
@@ -29,66 +29,29 @@ func NewBot(baseURL, token, filesDir string, src MediaService) (*Bot, error) {
 	}, nil
 }
 
-func (b *Bot) ListenUpdates(ctx context.Context) error {
+func (b *Bot) Start(ctx context.Context) error {
 	handler := NewHandler(b.client, b.src, b.filesDir)
-	routes := []Route{
-		{
-			Match: func(u telego.Update) bool {
-				var match bool
-				if u.Message != nil {
-					if u.Message.Text == "/start" {
-						match = true
-					}
-				}
-				return match
-			},
-			Handle: handler.OnStart,
-		},
-		{
-			Match: func(u telego.Update) bool {
-				var match bool
-				if u.Message != nil {
-					if u.Message.LinkPreviewOptions != nil {
-						match = true
-					}
-				}
-				return match
-			},
-			Handle: handler.OnDownload,
-		},
-		{
-			Match: func(u telego.Update) bool {
-				return u.CallbackQuery != nil
-			},
-			Handle: handler.OnCallbackQuery,
-		},
+	updChan, err := b.client.UpdatesViaLongPolling(ctx, &telego.GetUpdatesParams{
+		Timeout:        45,
+		AllowedUpdates: []string{"message", "callback_query"},
+	})
+	if err != nil {
+		return err
 	}
-	router := NewRouter(routes)
-	var lastUpdateID int
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		params := &telego.GetUpdatesParams{
-			Offset:         lastUpdateID + 1,
-			Limit:          100,
-			Timeout:        45,
-			AllowedUpdates: []string{"message", "callback_query"},
-		}
-		updates, err := b.client.GetUpdates(ctx, params)
-		if err != nil {
-			return err
-		}
-		for _, u := range updates {
-			lastUpdateID = u.UpdateID
-			go func(u telego.Update) {
-				if err := router.Route(ctx, u); err != nil {
-					slog.ErrorContext(ctx, err.Error())
-				}
-			}(u)
-		}
+	thandler, err := th.NewBotHandler(b.client, updChan)
+	if err != nil {
+		return err
 	}
+	thandler.Handle(handler.OnStart, th.CommandEqual("start"))
+	thandler.HandleMessage(handler.OnDownload, func(ctx context.Context, u telego.Update) bool {
+		var match bool
+		if u.Message != nil {
+			if u.Message.LinkPreviewOptions != nil {
+				match = true
+			}
+		}
+		return match
+	})
+	thandler.HandleCallbackQuery(handler.OnCallbackQuery)
+	return thandler.Start()
 }

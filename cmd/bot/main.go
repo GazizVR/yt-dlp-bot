@@ -37,7 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 	ctx := context.Background()
-	if err := bot.ListenUpdates(ctx); err != nil {
+	if err := bot.Start(ctx); err != nil {
 		log.Fatal(err)
 	}
 }
