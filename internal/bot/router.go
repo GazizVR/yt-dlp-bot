@@ -3,12 +3,12 @@ package bot
 import (
 	"context"
 
-	telegrambot "github.com/gazizvr/go-telegram-bot"
+	"github.com/mymmrac/telego"
 )
 
 type Route struct {
-	Match  func(telegrambot.Update) bool
-	Handle func(ctx context.Context, upd telegrambot.Update) error
+	Match  func(telego.Update) bool
+	Handle func(ctx context.Context, upd telego.Update) error
 }
 
 type Router struct {
@@ -23,7 +23,7 @@ func NewRouter(routes []Route) *Router {
 
 func (r *Router) Route(
 	ctx context.Context,
-	update telegrambot.Update,
+	update telego.Update,
 ) error {
 	for _, r := range r.routes {
 		if r.Match(update) {

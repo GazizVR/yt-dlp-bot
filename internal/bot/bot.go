@@ -4,43 +4,36 @@ import (
 	"context"
 	"log/slog"
 
-	telegrambot "github.com/gazizvr/go-telegram-bot"
+	"github.com/mymmrac/telego"
 )
 
 type Bot struct {
-	bot      *telegrambot.Bot
+	client   *telego.Bot
 	filesDir string
 	src      MediaService
 }
 
 func NewBot(baseURL, token, filesDir string, src MediaService) (*Bot, error) {
-	bot, err := telegrambot.NewBot(token)
+	var opts []telego.BotOption
+	if baseURL != "" {
+		opts = append(opts, telego.WithAPIServer(baseURL))
+	}
+	bot, err := telego.NewBot(token, opts...)
 	if err != nil {
 		return nil, err
 	}
-	if baseURL != "" {
-		if err := telegrambot.WithBaseURL(baseURL)(bot); err != nil {
-			return nil, err
-		}
-	}
-	if filesDir != "" {
-		if err := telegrambot.WithFilesDir(filesDir)(bot); err != nil {
-			return nil, err
-		}
-	}
-	localBot := &Bot{
+	return &Bot{
 		filesDir: filesDir,
-		bot:      bot,
+		client:   bot,
 		src:      src,
-	}
-	return localBot, nil
+	}, nil
 }
 
 func (b *Bot) ListenUpdates(ctx context.Context) error {
-	handler := NewHandler(b.bot, b.src)
+	handler := NewHandler(b.client, b.src, b.filesDir)
 	routes := []Route{
 		{
-			Match: func(u telegrambot.Update) bool {
+			Match: func(u telego.Update) bool {
 				var match bool
 				if u.Message != nil {
 					if u.Message.Text == "/start" {
@@ -52,7 +45,7 @@ func (b *Bot) ListenUpdates(ctx context.Context) error {
 			Handle: handler.OnStart,
 		},
 		{
-			Match: func(u telegrambot.Update) bool {
+			Match: func(u telego.Update) bool {
 				var match bool
 				if u.Message != nil {
 					if u.Message.LinkPreviewOptions != nil {
@@ -64,32 +57,38 @@ func (b *Bot) ListenUpdates(ctx context.Context) error {
 			Handle: handler.OnDownload,
 		},
 		{
-			Match: func(u telegrambot.Update) bool {
+			Match: func(u telego.Update) bool {
 				return u.CallbackQuery != nil
 			},
 			Handle: handler.OnCallbackQuery,
 		},
 	}
 	router := NewRouter(routes)
-	var lastUpdateID int64
+	var lastUpdateID int
 	for {
-		params := telegrambot.GetUpdatesParams{
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		params := &telego.GetUpdatesParams{
 			Offset:         lastUpdateID + 1,
 			Limit:          100,
 			Timeout:        45,
 			AllowedUpdates: []string{"message", "callback_query"},
 		}
-		updates, err := b.bot.GetUpdates(ctx, params)
+		updates, err := b.client.GetUpdates(ctx, params)
 		if err != nil {
 			return err
 		}
 		for _, u := range updates {
-			lastUpdateID = u.ID
-			go func() {
+			lastUpdateID = u.UpdateID
+			go func(u telego.Update) {
 				if err := router.Route(ctx, u); err != nil {
 					slog.ErrorContext(ctx, err.Error())
 				}
-			}()
+			}(u)
 		}
 	}
 }

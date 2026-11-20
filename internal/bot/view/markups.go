@@ -1,36 +1,28 @@
 package view
 
 import (
-	telegrambot "github.com/gazizvr/go-telegram-bot"
 	"github.com/gazizvr/yt-dlp-bot/internal/domain"
+	"github.com/mymmrac/telego"
+	tu "github.com/mymmrac/telego/telegoutil"
 )
 
-var EmptyMarkup = &telegrambot.InlineKeyboardMarkup{
-	Keyboard: [][]telegrambot.InlineKeyboardButton{},
+var EmptyMarkup = &telego.InlineKeyboardMarkup{
+	InlineKeyboard: [][]telego.InlineKeyboardButton{},
 }
 
-func errorMarkup(callbackData string) *telegrambot.InlineKeyboardMarkup {
-	button := &telegrambot.InlineKeyboardButton{
-		Text:         tryAgainBtnText,
-		CallbackData: callbackData,
-	}
-	return &telegrambot.InlineKeyboardMarkup{
-		Keyboard: [][]telegrambot.InlineKeyboardButton{{*button}},
-	}
+func errorMarkup(callbackData string) *telego.InlineKeyboardMarkup {
+	return tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton(tryAgainBtnText).WithCallbackData(callbackData),
+		),
+	)
 }
 
-func downloadOptionsMarkup(reqID, separator string) *telegrambot.InlineKeyboardMarkup {
-	videoButton := telegrambot.InlineKeyboardButton{
-		Text:         videoBtnText,
-		CallbackData: reqID + separator + string(domain.DownloadVideo),
-	}
-	audioButton := telegrambot.InlineKeyboardButton{
-		Text:         audioBtnText,
-		CallbackData: reqID + separator + string(domain.DownloadAudio),
-	}
-	return &telegrambot.InlineKeyboardMarkup{
-		Keyboard: [][]telegrambot.InlineKeyboardButton{
-			{videoButton, audioButton},
-		},
-	}
+func downloadOptionsMarkup(reqID, separator string) *telego.InlineKeyboardMarkup {
+	return tu.InlineKeyboard(
+		tu.InlineKeyboardRow(
+			tu.InlineKeyboardButton(videoBtnText).WithCallbackData(reqID+separator+string(domain.DownloadVideo)),
+			tu.InlineKeyboardButton(audioBtnText).WithCallbackData(reqID+separator+string(domain.DownloadAudio)),
+		),
+	)
 }

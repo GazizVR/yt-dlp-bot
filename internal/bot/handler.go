@@ -2,12 +2,14 @@ package bot
 
 import (
 	"context"
+	"os"
 	"strconv"
 	"strings"
 
-	telegrambot "github.com/gazizvr/go-telegram-bot"
 	"github.com/gazizvr/yt-dlp-bot/internal/bot/view"
 	"github.com/gazizvr/yt-dlp-bot/internal/domain"
+	"github.com/mymmrac/telego"
+	tu "github.com/mymmrac/telego/telegoutil"
 )
 
 type MediaService interface {
@@ -17,23 +19,26 @@ type MediaService interface {
 }
 
 type Handler struct {
-	bot *telegrambot.Bot
-	src MediaService
+	bot      *telego.Bot
+	src      MediaService
+	filesDir string
 }
 
 func NewHandler(
-	bot *telegrambot.Bot,
+	bot *telego.Bot,
 	src MediaService,
+	filesDir string,
 ) *Handler {
 	return &Handler{
-		bot: bot,
-		src: src,
+		bot:      bot,
+		src:      src,
+		filesDir: filesDir,
 	}
 }
 
 func (h *Handler) OnStart(
 	ctx context.Context,
-	upd telegrambot.Update,
+	upd telego.Update,
 ) error {
 	params := view.StartMessageParams(upd.Message.Chat.ID)
 	if _, err := h.bot.SendMessage(ctx, params); err != nil {
@@ -46,20 +51,23 @@ const separator string = "-"
 
 func (h *Handler) OnDownload(
 	ctx context.Context,
-	upd telegrambot.Update,
+	upd telego.Update,
 ) error {
-	url := upd.Message.LinkPreviewOptions.URL
+	var url string
+	if upd.Message.LinkPreviewOptions != nil {
+		url = upd.Message.LinkPreviewOptions.URL
+	}
 	if url == "" {
 		url = upd.Message.Text
 	}
 	reqID, err := h.src.Create(ctx, url)
 	if err != nil {
-		h.bot.SendMessage(ctx, view.ErrorMessageParams(upd.Message.Chat.ID, upd.Message.ID))
+		h.bot.SendMessage(ctx, view.ErrorMessageParams(upd.Message.Chat.ID, upd.Message.MessageID))
 		return err
 	}
 	strReqID := strconv.Itoa(int(reqID))
-	if _, err := h.bot.SendMessage(ctx, view.ChooseDownloadMessageParams(upd.Message.Chat.ID, upd.Message.ID, strReqID, separator)); err != nil {
-		h.bot.SendMessage(ctx, view.ErrorMessageParams(upd.Message.Chat.ID, upd.Message.ID))
+	if _, err := h.bot.SendMessage(ctx, view.ChooseDownloadMessageParams(upd.Message.Chat.ID, upd.Message.MessageID, strReqID, separator)); err != nil {
+		h.bot.SendMessage(ctx, view.ErrorMessageParams(upd.Message.Chat.ID, upd.Message.MessageID))
 		return err
 	}
 	return nil
@@ -67,19 +75,14 @@ func (h *Handler) OnDownload(
 
 func (h *Handler) OnCallbackQuery(
 	ctx context.Context,
-	upd telegrambot.Update,
+	upd telego.Update,
 ) error {
-	var chatID, msgID int64
-	switch v := upd.CallbackQuery.Message.(type) {
-	case telegrambot.InaccessibleMessage:
-		chatID = v.Chat.ID
-		msgID = v.ID
-	case telegrambot.Message:
-		chatID = v.Chat.ID
-		msgID = v.ID
-	default:
+	if upd.CallbackQuery == nil || upd.CallbackQuery.Message == nil {
 		return ErrMessageNotFound
 	}
+	chatID := upd.CallbackQuery.Message.GetChat().ID
+	msgID := upd.CallbackQuery.Message.GetMessageID()
+
 	msg, err := h.bot.EditMessageText(ctx, view.WaitMessageParams(msgID, chatID))
 	if err != nil {
 		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(chatID, msgID))
@@ -87,45 +90,66 @@ func (h *Handler) OnCallbackQuery(
 	}
 	data := upd.CallbackQuery.Data
 	if data == "" {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
+		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.MessageID))
 		return ErrEmptyCallbackData
 	}
 	rawID, rawAction, ok := strings.Cut(data, separator)
 	if !ok || rawID == "" || rawAction == "" {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
+		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.MessageID))
 		return ErrInvalidCallbackData
 	}
 	id, err := strconv.ParseInt(rawID, 10, 64)
 	if err != nil {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
+		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.MessageID))
 		return err
 	}
 	action := domain.Action(rawAction)
 	filepath, isVideo, err := h.src.Download(ctx, id, action)
 	if err != nil {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.ID))
+		h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.MessageID))
 		return err
 	}
-	var inputMediaType telegrambot.MediaType
-	if isVideo {
-		inputMediaType = telegrambot.MediaTypeVideo
+
+	var inputFile telego.InputFile
+	if h.filesDir != "" {
+		fileURL := filepath
+		if !strings.HasPrefix(fileURL, "file://") {
+			fileURL = "file://" + fileURL
+		}
+		inputFile = telego.InputFile{URL: fileURL}
 	} else {
-		inputMediaType = telegrambot.MediaTypeAudio
+		file, err := os.Open(filepath)
+		if err != nil {
+			h.bot.EditMessageText(ctx, view.ErrorEditMessageParams(msg.Chat.ID, msg.MessageID))
+			return err
+		}
+		defer file.Close()
+		inputFile = tu.File(file)
 	}
-	params := telegrambot.EditMessageMediaParams{
-		ChatID:    msg.Chat.ID,
-		MessageID: msg.ID,
-		Media: telegrambot.InputMedia{
-			Type:  inputMediaType,
-			Media: &telegrambot.LocalSource{Filepath: filepath},
-		},
+
+	var media telego.InputMedia
+	if isVideo {
+		media = &telego.InputMediaVideo{
+			Type:  telego.MediaTypeVideo,
+			Media: inputFile,
+		}
+	} else {
+		media = &telego.InputMediaAudio{
+			Type:  telego.MediaTypeAudio,
+			Media: inputFile,
+		}
+	}
+	params := &telego.EditMessageMediaParams{
+		ChatID:    tu.ID(msg.Chat.ID),
+		MessageID: msg.MessageID,
+		Media:     media,
 	}
 	if _, err := h.bot.EditMessageMedia(ctx, params); err != nil {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.ID, data))
+		h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.MessageID, data))
 		return err
 	}
 	if err := h.src.Release(ctx, id); err != nil {
-		h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.ID, data))
+		h.bot.EditMessageText(ctx, view.ErrorEditMessageMarkupParams(msg.Chat.ID, msg.MessageID, data))
 		return err
 	}
 	return nil
